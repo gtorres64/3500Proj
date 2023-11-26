@@ -24,9 +24,24 @@ ROWS = 8
 RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
 GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
 
-# Define color constants
 REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
 GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
+
+#CHESS IMAGES
+WHITEKING = pygame.image.load(os.path.join(dirname, 'images/kingwhite.png'))
+WHITEQUEEN = pygame.image.load(os.path.join(dirname, 'images/queenwhite.png'))
+WHITEROOK = pygame.image.load(os.path.join(dirname, 'images/rookwhite.png'))
+WHITEKNIGHT = pygame.image.load(os.path.join(dirname, 'images/knightwhite.png'))
+WHITEBISHOP = pygame.image.load(os.path.join(dirname, 'images/bishopwhite.png'))
+WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/pawnwhite.png'))
+
+BLACKKING = pygame.image.load(os.path.join(dirname, 'images/kingblack.png'))
+BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/queenblack.png'))
+BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/rookblack.png'))
+BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/knightblack.png'))
+BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bishopblack.png'))
+BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/pawnblack.png'))
+
 
 # Define color constants
 WHITE = (255,255,255)
@@ -78,6 +93,31 @@ def make_grid(rows, width):
                 node.piece = Piece('R')
             elif(abs(i+j)%2==0) and i>4:
                 node.piece=Piece('G')
+            count+=1
+            grid[i].append(node)
+    return grid
+
+#Function for creating the chess grid
+def make_grid_chess(rows, width):
+    grid = []
+    gap = width// rows
+    count = 0
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(j,i, gap)
+            #Alternating between black and white spaces
+            #Changed to follow chess boards
+            if abs(i-j) % 2 == 1:
+                node.colour=BLACK
+            ##if (abs(i+j)%2==0) and (i<3):
+            ##    node.piece = Piece('R')
+            ##elif(abs(i+j)%2==0) and i>4:
+            ##    node.piece=Piece('G')
+            if i == 1:
+                node.piece = Piece('B_PAWN')
+            if i == 6:
+                node.piece = Piece('W_PAWN')
             count+=1
             grid[i].append(node)
     return grid
@@ -217,50 +257,107 @@ def reset_game(grid):
 
 # Main function to run the game loop
 def main(WIDTH, ROWS):
-    grid = make_grid(ROWS, WIDTH)
     highlightedPiece = None
     currMove = 'G'
 
     game_over = False
 
+    #Print statements asking for a gamemode
+    print("1: Play Checkers")
+    print("2: Play Chess")
+    print("Other: Quit")
 
+    #Loop to get user input to determine gamemode
+    while True:
+        #User must enter a positive integer otherwise,
+        #An exception is thrown
+        try:
+            gameMode = int(input(""))
+            if gameMode > -1:
+                break
+            else:
+                print("Enter a positive integer")
+        except:
+            print("Invalid Input. Please enter a positive integer")
 
-    #while True:
-    while not game_over:
-        for event in pygame.event.get():
-            if event.type== pygame.QUIT:
-                print('EXIT SUCCESSFUL')
-                pygame.quit()
-                sys.exit()
+    #Lets play Checkers
+    if gameMode == 1:
+        #while True:
+        print("Playing Checkers")
+        grid = make_grid(ROWS, WIDTH)
+        while not game_over:
+            for event in pygame.event.get():
+                if event.type== pygame.QUIT:
+                    print('EXIT SUCCESSFUL')
+                    pygame.quit()
+                    sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                clickedNode = getNode(grid, ROWS, WIDTH)
-                ClickedPositionColumn, ClickedPositionRow = clickedNode
-                if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
-                    if highlightedPiece:
-                        pieceColumn, pieceRow = highlightedPiece
-                    if currMove == grid[pieceColumn][pieceRow].piece.team:
-                        resetColours(grid, highlightedPiece)
-                        currMove=move(grid, highlightedPiece, clickedNode)
-                elif highlightedPiece == clickedNode:
-                    pass
-                else:
-                    if grid[ClickedPositionColumn][ClickedPositionRow].piece:
-                        if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
-                            highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    clickedNode = getNode(grid, ROWS, WIDTH)
+                    ClickedPositionColumn, ClickedPositionRow = clickedNode
+                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                        if highlightedPiece:
+                            pieceColumn, pieceRow = highlightedPiece
+                        if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            resetColours(grid, highlightedPiece)
+                            currMove=move(grid, highlightedPiece, clickedNode)
+                    elif highlightedPiece == clickedNode:
+                        pass
+                    else:
+                        if grid[ClickedPositionColumn][ClickedPositionRow].piece:
+                            if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
+                                highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
 
-         # Check for a winning condition
-        winner = check_for_winner(grid)
-        if winner is not None:
-            print(f"Player {winner} wins!")
-            reset_game(grid)
-            game_over = False
+            # Check for a winning condition
+            winner = check_for_winner(grid)
+            if winner is not None:
+                print(f"Player {winner} wins!")
+                reset_game(grid)
+                game_over = False
 
-        update_display(WIN, grid,ROWS,WIDTH)
+            update_display(WIN, grid,ROWS,WIDTH)
+    
+    #Lets play Chess
+    elif gameMode == 2:
+        print("Playing Chess")
+        grid = make_grid_chess(ROWS, WIDTH)
+        while not game_over:
+            for event in pygame.event.get():
+                if event.type== pygame.QUIT:
+                    print('EXIT SUCCESSFUL')
+                    pygame.quit()
+                    sys.exit()
 
-     # Close the pygame window
-    pygame.quit()
-    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    clickedNode = getNode(grid, ROWS, WIDTH)
+                    ClickedPositionColumn, ClickedPositionRow = clickedNode
+                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                        if highlightedPiece:
+                            pieceColumn, pieceRow = highlightedPiece
+                        if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            resetColours(grid, highlightedPiece)
+                            currMove=move(grid, highlightedPiece, clickedNode)
+                    elif highlightedPiece == clickedNode:
+                        pass
+                    else:
+                        if grid[ClickedPositionColumn][ClickedPositionRow].piece:
+                            if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
+                                highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
+
+            # Check for a winning condition
+            winner = check_for_winner(grid)
+            ##if winner is not None:
+            ##    print(f"Player {winner} wins!")
+            ##    reset_game(grid)
+            ##    game_over = False
+
+            update_display(WIN, grid,ROWS,WIDTH)
+
+    #Quit the game
+    else:
+        # Close the pygame window
+        pygame.quit()
+        sys.exit()
 
 
 

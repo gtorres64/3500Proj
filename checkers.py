@@ -20,6 +20,8 @@ filename = os.path.join(dirname, 'relative/path/to/file/you/want')
 WIDTH = 800
 ROWS = 8
 
+IMAGE_SIZE = (200, 200)
+
 # Load images for the game pieces and board
 RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
 GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
@@ -40,7 +42,7 @@ BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/queenblack.png'))
 BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/rookblack.png'))
 BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/knightblack.png'))
 BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bishopblack.png'))
-BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/pawnblack.png'))
+BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/bP.svg'))
 
 
 # Define color constants
@@ -48,6 +50,7 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
+PINK = (255, 0, 255)
 
 # Initialize Pygame
 pygame.init()
@@ -88,7 +91,7 @@ def make_grid(rows, width):
         for j in range(rows):
             node = Node(j,i, gap)
             if abs(i-j) % 2 == 0:
-                node.colour=BLACK
+                node.colour=PINK
             if (abs(i+j)%2==0) and (i<3):
                 node.piece = Piece('R')
             elif(abs(i+j)%2==0) and i>4:
@@ -109,15 +112,19 @@ def make_grid_chess(rows, width):
             #Alternating between black and white spaces
             #Changed to follow chess boards
             if abs(i-j) % 2 == 1:
-                node.colour=BLACK
+                node.colour=PINK
             ##if (abs(i+j)%2==0) and (i<3):
             ##    node.piece = Piece('R')
             ##elif(abs(i+j)%2==0) and i>4:
             ##    node.piece=Piece('G')
             if i == 1:
-                node.piece = Piece('B_PAWN')
+                node.piece = ChessPiece("B_PAWN")
+            if i == 0 and j == 0:
+                node.piece == ChessPiece("B_ROOK")
             if i == 6:
-                node.piece = Piece('W_PAWN')
+                node.piece = ChessPiece("W_PAWN")
+            if i == 7 and (j == 0 or j == 7):
+                node.piece == ChessPiece("W_ROOK")
             count+=1
             grid[i].append(node)
     return grid
@@ -126,9 +133,9 @@ def make_grid_chess(rows, width):
 def draw_grid(win, rows, width):
     gap = width // ROWS
     for i in range(rows):
-        pygame.draw.line(win, BLACK, (0, i * gap), (width, i * gap))
+        pygame.draw.line(win, PINK, (0, i * gap), (width, i * gap))
         for j in range(rows):
-            pygame.draw.line(win, BLACK, (j * gap, 0), (j * gap, width))
+            pygame.draw.line(win, PINK, (j * gap, 0), (j * gap, width))
 
 # Class representing a game piece
 class Piece:
@@ -139,6 +146,16 @@ class Piece:
 
     def draw(self, x, y):
         WIN.blit(self.image, (x,y))
+
+class ChessPiece:
+    def __init__(self, team):
+        self.team=team
+        self.image= BLACKPAWN if self.team=="B_PAWN" else GREEN
+        self.type=None
+
+    def draw(self, x, y):
+        WIN.blit(self.image, (x,y))
+
 
 # Function to get the node position based on mouse coordinates
 def getNode(grid, rows, width):

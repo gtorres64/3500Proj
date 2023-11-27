@@ -40,7 +40,7 @@ WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/wP.svg'))
 BLACKKING = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
 BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/bQ.svg'))
 BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/bR.svg'))
-BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bN.svg'))
+BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
 BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bB.svg'))
 BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/bP.svg'))
 
@@ -91,7 +91,7 @@ def make_grid(rows, width):
         for j in range(rows):
             node = Node(j,i, gap)
             if abs(i-j) % 2 == 0:
-                node.colour=PINK
+                node.colour=BLACK
             if (abs(i+j)%2==0) and (i<3):
                 node.piece = Piece('R')
             elif(abs(i+j)%2==0) and i>4:
@@ -145,9 +145,9 @@ def make_grid_chess(rows, width):
 def draw_grid(win, rows, width):
     gap = width // ROWS
     for i in range(rows):
-        pygame.draw.line(win, PINK, (0, i * gap), (width, i * gap))
+        pygame.draw.line(win, BLACK, (0, i * gap), (width, i * gap))
         for j in range(rows):
-            pygame.draw.line(win, PINK, (j * gap, 0), (j * gap, width))
+            pygame.draw.line(win, BLACK, (j * gap, 0), (j * gap, width))
 
 # Class representing a game piece
 class Piece:

@@ -30,18 +30,18 @@ REDKING = pygame.image.load(os.path.join(dirname, 'images/redking.png'))
 GREENKING = pygame.image.load(os.path.join(dirname, 'images/greenking.png'))
 
 #CHESS IMAGES
-WHITEKING = pygame.image.load(os.path.join(dirname, 'images/kingwhite.png'))
-WHITEQUEEN = pygame.image.load(os.path.join(dirname, 'images/queenwhite.png'))
-WHITEROOK = pygame.image.load(os.path.join(dirname, 'images/rookwhite.png'))
-WHITEKNIGHT = pygame.image.load(os.path.join(dirname, 'images/knightwhite.png'))
-WHITEBISHOP = pygame.image.load(os.path.join(dirname, 'images/bishopwhite.png'))
-WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/pawnwhite.png'))
+WHITEKING = pygame.image.load(os.path.join(dirname, 'images/wK.svg'))
+WHITEQUEEN = pygame.image.load(os.path.join(dirname, 'images/wQ.svg'))
+WHITEROOK = pygame.image.load(os.path.join(dirname, 'images/wR.svg'))
+WHITEKNIGHT = pygame.image.load(os.path.join(dirname, 'images/wK.svg'))
+WHITEBISHOP = pygame.image.load(os.path.join(dirname, 'images/wB.svg'))
+WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/wP.svg'))
 
-BLACKKING = pygame.image.load(os.path.join(dirname, 'images/kingblack.png'))
-BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/queenblack.png'))
-BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/rookblack.png'))
-BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/knightblack.png'))
-BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bishopblack.png'))
+BLACKKING = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
+BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/bQ.svg'))
+BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/bR.svg'))
+BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
+BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bB.svg'))
 BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/bP.svg'))
 
 
@@ -109,22 +109,34 @@ def make_grid_chess(rows, width):
         grid.append([])
         for j in range(rows):
             node = Node(j,i, gap)
-            #Alternating between black and white spaces
+            #Alternating between pink and white spaces
             #Changed to follow chess boards
             if abs(i-j) % 2 == 1:
                 node.colour=PINK
-            ##if (abs(i+j)%2==0) and (i<3):
-            ##    node.piece = Piece('R')
-            ##elif(abs(i+j)%2==0) and i>4:
-            ##    node.piece=Piece('G')
             if i == 1:
                 node.piece = ChessPiece("B_PAWN")
-            if i == 0 and j == 0:
-                node.piece == ChessPiece("B_ROOK")
+            if i == 0 and (j == 0 or j == 7):
+                node.piece = ChessPiece("B_ROOK")
+            if i == 0 and (j == 1 or j == 6):
+                node.piece = ChessPiece("B_KNIGHT")
+            if i == 0 and (j == 2 or j == 5):
+                node.piece = ChessPiece("B_BISHOP")
+            if i == 0 and j == 3:
+                node.piece = ChessPiece("B_QUEEN")
+            if i == 0 and j == 4:
+                node.piece = ChessPiece("B_KING")
             if i == 6:
                 node.piece = ChessPiece("W_PAWN")
             if i == 7 and (j == 0 or j == 7):
-                node.piece == ChessPiece("W_ROOK")
+                node.piece = ChessPiece("W_ROOK")
+            if i == 7 and (j == 1 or j == 6):
+                node.piece = ChessPiece("W_KNIGHT")
+            if i == 7 and (j == 2 or j == 5):
+                node.piece = ChessPiece("W_BISHOP")
+            if i == 7 and j == 3:
+                node.piece = ChessPiece("W_QUEEN")
+            if i == 7 and j == 4:
+                node.piece = ChessPiece("W_KING")
             count+=1
             grid[i].append(node)
     return grid
@@ -147,10 +159,34 @@ class Piece:
     def draw(self, x, y):
         WIN.blit(self.image, (x,y))
 
+#Class representing a chess piece
 class ChessPiece:
     def __init__(self, team):
         self.team=team
-        self.image= BLACKPAWN if self.team=="B_PAWN" else GREEN
+        if self.team == "W_PAWN":
+            self.image= WHITEPAWN
+        if self.team == "W_ROOK":
+            self.image = WHITEROOK
+        if self.team == "W_KNIGHT":
+            self.image = WHITEKNIGHT
+        if self.team == "W_BISHOP":
+            self.image = WHITEBISHOP
+        if self.team == "W_QUEEN":
+            self.image = WHITEQUEEN
+        if self.team == "W_KING":
+            self.image = WHITEKING
+        if self.team == "B_PAWN":
+            self.image= BLACKPAWN
+        if self.team == "B_ROOK":
+            self.image = BLACKROOK
+        if self.team == "B_KNIGHT":
+            self.image = BLACKKNIGHT
+        if self.team == "B_BISHOP":
+            self.image = BLACKBISHOP
+        if self.team == "B_QUEEN":
+            self.image = BLACKQUEEN
+        if self.team == "B_KING":
+            self.image = BLACKKING
         self.type=None
 
     def draw(self, x, y):

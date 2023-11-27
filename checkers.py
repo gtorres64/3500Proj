@@ -40,7 +40,7 @@ WHITEPAWN = pygame.image.load(os.path.join(dirname, 'images/wP.svg'))
 BLACKKING = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
 BLACKQUEEN = pygame.image.load(os.path.join(dirname, 'images/bQ.svg'))
 BLACKROOK = pygame.image.load(os.path.join(dirname, 'images/bR.svg'))
-BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bK.svg'))
+BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bN.svg'))
 BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bB.svg'))
 BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/bP.svg'))
 

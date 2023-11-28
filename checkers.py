@@ -179,9 +179,6 @@ def move(grid, piecePosition, newPosition):
 
 #WINNER
 def check_for_winner(grid):
-    # Check for a winning condition (you need to define the winning condition based on your game rules)
-    # For example, if all pieces of one color are eliminated, that color is the winner.
-    # You might need to adapt this based on your specific game rules.
     red_pieces = sum(row.count(node) for row in grid for node in row if node.piece and node.piece.team == 'R')
     green_pieces = sum(row.count(node) for row in grid for node in row if node.piece and node.piece.team == 'G')
 

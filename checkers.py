@@ -221,6 +221,16 @@ def HighlightpotentialMoves(piecePosition, grid):
 def opposite(team):
     return "R" if team=="G" else "G"
 
+# Function to check for stalemate 
+def check_stalemate(grid, team):
+    for row in grid:
+        for node in row:
+            if node.piece and node.piece.team == team:
+                moves = generatePotentialMoves((node.row, node.col), grid)
+                if moves:
+                    return False
+    return True
+
 # Function to generate potential moves for a given piece position
 def generatePotentialMoves(nodePosition, grid):
     checker = lambda x,y: x+y>=0 and x+y<8
@@ -354,6 +364,11 @@ def main(WIDTH, ROWS):
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
                             resetColours(grid, highlightedPiece)
                             currMove=move(grid, highlightedPiece, clickedNode)
+
+                            # check for stalemate after a move
+                            if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
+                                print("Stalemate! It's a draw!")
+
                     elif highlightedPiece == clickedNode:
                         pass
                     else:

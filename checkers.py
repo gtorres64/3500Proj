@@ -400,6 +400,7 @@ def move(grid, piecePosition, newPosition):
     return opposite(grid[newColumn][newRow].piece.team)
 
 def moveChess(grid, piecePosition, newPosition):
+    print("New move!")
     resetChessColours(grid, piecePosition)
     newColumn, newRow = newPosition
     oldColumn, oldRow = piecePosition
@@ -409,13 +410,69 @@ def moveChess(grid, piecePosition, newPosition):
     grid[oldColumn][oldRow].piece = None
     grid[newColumn][newRow].piece.turnCount+=1
 
-    # Check for king status and update piece type and image
-    if newColumn==7 and grid[newColumn][newRow].piece.team=='W':
-        grid[newColumn][newRow].piece.type='KING'
-        grid[newColumn][newRow].piece.image=REDKING
-    if newColumn==0 and grid[newColumn][newRow].piece.team=='B':
-        grid[newColumn][newRow].piece.type='KING'
-        grid[newColumn][newRow].piece.image=GREENKING
+    # Promote the pawn into another piece
+    if newColumn==0 and grid[newColumn][newRow].piece.type=='W_PAWN':
+        print("Pawn promotion! Enter a key to choose a piece")
+        print("Queen: Q")
+        print("Knight: K")
+        print("Bishop: B")
+        print("Rook: R")
+        #While loop to get user input for pawn promotion
+        promotion = True
+        while promotion:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    print('EXIT SUCCESSFUL')
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        grid[newColumn][newRow].piece.type='W_QUEEN'
+                        grid[newColumn][newRow].piece.image=WHITEQUEEN
+                        promotion = False
+                    elif event.key == pygame.K_k:
+                        grid[newColumn][newRow].piece.type='W_KNIGHT'
+                        grid[newColumn][newRow].piece.image=WHITEKNIGHT
+                        promotion = False
+                    elif event.key == pygame.K_b:
+                        grid[newColumn][newRow].piece.type='W_BISHOP'
+                        grid[newColumn][newRow].piece.image=WHITEBISHOP
+                        promotion = False
+                    elif event.key == pygame.K_r:
+                        grid[newColumn][newRow].piece.type='W_ROOK'
+                        grid[newColumn][newRow].piece.image=WHITEROOK
+                        promotion = False
+    if newColumn==7 and grid[newColumn][newRow].piece.type=='B_PAWN':
+        print("Pawn promotion! Enter a key to choose a piece")
+        print("Queen: Q")
+        print("Knight: K")
+        print("Bishop: B")
+        print("Rook: R")
+        #While loop to get user input for pawn promotion
+        promotion = True
+        while promotion:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    print('EXIT SUCCESSFUL')
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        grid[newColumn][newRow].piece.type='B_QUEEN'
+                        grid[newColumn][newRow].piece.image=BLACKQUEEN
+                        promotion = False
+                    elif event.key == pygame.K_k:
+                        grid[newColumn][newRow].piece.type='B_KNIGHT'
+                        grid[newColumn][newRow].piece.image=BLACKKNIGHT
+                        promotion = False
+                    elif event.key == pygame.K_b:
+                        grid[newColumn][newRow].piece.type='B_BISHOP'
+                        grid[newColumn][newRow].piece.image=BLACKBISHOP
+                        promotion = False
+                    elif event.key == pygame.K_r:
+                        grid[newColumn][newRow].piece.type='B_ROOK'
+                        grid[newColumn][newRow].piece.image=BLACKROOK
+                        promotion = False
     # Check for capturing move and remove captured piece
     # CHANGE THIS
     if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
@@ -456,20 +513,26 @@ def main(WIDTH, ROWS):
     #Print statements asking for a gamemode
     print("1: Play Checkers")
     print("2: Play Chess")
-    print("Other: Quit")
+    print("0: Quit")
 
     #Loop to get user input to determine gamemode
-    while True:
-        #User must enter a positive integer otherwise,
-        #An exception is thrown
-        try:
-            gameMode = int(input(""))
-            if gameMode > -1:
-                break
-            else:
-                print("Enter a positive integer")
-        except:
-            print("Invalid Input. Please enter a positive integer")
+    noInput = True
+    while noInput:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                print('EXIT SUCCESSFUL')
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    gameMode = 1
+                    noInput = False
+                elif event.key == pygame.K_2:
+                    gameMode = 2
+                    noInput = False
+                elif event.key == pygame.K_0:
+                    gameMode = 3
+                    noInput = False
 
     #Lets play Checkers
     if gameMode == 1:

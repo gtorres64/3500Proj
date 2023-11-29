@@ -242,6 +242,17 @@ def opposite(team):
 def oppositeChess(team):
     return "B" if team=="W" else "W"
 
+# Function to check for stalemate 
+def check_stalemate(grid, team):
+    for row in grid:
+        for node in row:
+            if node.piece and node.piece.team == team:
+                moves = generatePotentialMoves((node.row, node.col), grid)
+                if moves:
+                    return False
+    return True
+
+
 # Function to generate potential moves for a given piece position
 def generatePotentialMoves(nodePosition, grid):
     checker = lambda x,y: x+y>=0 and x+y<8
@@ -412,9 +423,6 @@ def moveChess(grid, piecePosition, newPosition):
 
 #WINNER
 def check_for_winner(grid):
-    # Check for a winning condition (you need to define the winning condition based on your game rules)
-    # For example, if all pieces of one color are eliminated, that color is the winner.
-    # You might need to adapt this based on your specific game rules.
     red_pieces = sum(row.count(node) for row in grid for node in row if node.piece and node.piece.team == 'R')
     green_pieces = sum(row.count(node) for row in grid for node in row if node.piece and node.piece.team == 'G')
 
@@ -483,6 +491,11 @@ def main(WIDTH, ROWS):
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
                             resetColours(grid, highlightedPiece)
                             currMove=move(grid, highlightedPiece, clickedNode)
+
+                            # check for stalemate after a move
+                            if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
+                                print("Stalemate! It's a draw!")
+
                     elif highlightedPiece == clickedNode:
                         pass
                     else:

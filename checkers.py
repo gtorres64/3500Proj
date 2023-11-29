@@ -164,6 +164,7 @@ class ChessPiece:
     def __init__(self, team, type):
         self.team=team
         self.type=type
+        self.turn=0
         if self.team == 'W':
             if self.type == "W_PAWN":
                 self.image= WHITEPAWN
@@ -272,9 +273,18 @@ def generatePotentialChessMoves(nodePosition, grid):
     if grid[column][row].piece:
         if grid[column][row].piece.team=='W':
             if grid[column][row].piece.type=='W_PAWN':
-                vectors = [[-1, 0], [-2, 0]]
-        if grid[column][row].piece.type=='B_PAWN':
-            vectors = [[1, 0], [2, 0]]
+                if grid[column][row].piece.turn == 0:
+                    vectors = [[-1, 0], [-2, 0]]
+                else:
+                    vectors = [[-1, 0]]
+            if grid[column][row].piece.type=='W_KING':
+                    vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+        else:
+            if grid[column][row].piece.type=='B_PAWN':
+                if grid[column][row].piece.turn == 0:
+                    vectors = [[1, 0], [2, 0]]
+                else:
+                    vectors = [[1, 0]]
         for vector in vectors:
             columnVector, rowVector = vector
             if checker(columnVector,column) and checker(rowVector,row):

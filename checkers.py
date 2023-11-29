@@ -164,7 +164,7 @@ class ChessPiece:
     def __init__(self, team, type):
         self.team=team
         self.type=type
-        self.turn=0
+        self.turnCount=0
         if self.team == 'W':
             if self.type == "W_PAWN":
                 self.image= WHITEPAWN
@@ -284,7 +284,7 @@ def generatePotentialChessMoves(nodePosition, grid):
     if grid[column][row].piece:
         if grid[column][row].piece.team=='W':
             if grid[column][row].piece.type=='W_PAWN':
-                if grid[column][row].piece.turn == 0:
+                if grid[column][row].piece.turnCount == 0:
                     vectors = [[-1, 0], [-2, 0]]
                 else:
                     vectors = [[-1, 0]]
@@ -313,7 +313,7 @@ def generatePotentialChessMoves(nodePosition, grid):
                            [-1, -1], [-2, -2], [-3, -3], [-4, -4], [-5, -5], [-6, -6], [-7, -7]]
         else:
             if grid[column][row].piece.type=='B_PAWN':
-                if grid[column][row].piece.turn == 0:
+                if grid[column][row].piece.turnCount == 0:
                     vectors = [[1, 0], [2, 0]]
                 else:
                     vectors = [[1, 0]]
@@ -407,6 +407,7 @@ def moveChess(grid, piecePosition, newPosition):
     piece = grid[oldColumn][oldRow].piece
     grid[newColumn][newRow].piece=piece
     grid[oldColumn][oldRow].piece = None
+    grid[newColumn][newRow].piece.turnCount+=1
 
     # Check for king status and update piece type and image
     if newColumn==7 and grid[newColumn][newRow].piece.team=='W':
@@ -416,6 +417,7 @@ def moveChess(grid, piecePosition, newPosition):
         grid[newColumn][newRow].piece.type='KING'
         grid[newColumn][newRow].piece.image=GREENKING
     # Check for capturing move and remove captured piece
+    # CHANGE THIS
     if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
         grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
         return grid[newColumn][newRow].piece.team

@@ -114,29 +114,29 @@ def make_grid_chess(rows, width):
             if abs(i-j) % 2 == 1:
                 node.colour=PINK
             if i == 1:
-                node.piece = ChessPiece("B_PAWN")
+                node.piece = ChessPiece('B',"B_PAWN")
             if i == 0 and (j == 0 or j == 7):
-                node.piece = ChessPiece("B_ROOK")
+                node.piece = ChessPiece('B',"B_ROOK")
             if i == 0 and (j == 1 or j == 6):
-                node.piece = ChessPiece("B_KNIGHT")
+                node.piece = ChessPiece('B',"B_KNIGHT")
             if i == 0 and (j == 2 or j == 5):
-                node.piece = ChessPiece("B_BISHOP")
+                node.piece = ChessPiece('B',"B_BISHOP")
             if i == 0 and j == 3:
-                node.piece = ChessPiece("B_QUEEN")
+                node.piece = ChessPiece('B',"B_QUEEN")
             if i == 0 and j == 4:
-                node.piece = ChessPiece("B_KING")
+                node.piece = ChessPiece('B', "B_KING")
             if i == 6:
-                node.piece = ChessPiece("W_PAWN")
+                node.piece = ChessPiece('W',"W_PAWN")
             if i == 7 and (j == 0 or j == 7):
-                node.piece = ChessPiece("W_ROOK")
+                node.piece = ChessPiece('W',"W_ROOK")
             if i == 7 and (j == 1 or j == 6):
-                node.piece = ChessPiece("W_KNIGHT")
+                node.piece = ChessPiece('W',"W_KNIGHT")
             if i == 7 and (j == 2 or j == 5):
-                node.piece = ChessPiece("W_BISHOP")
+                node.piece = ChessPiece('W',"W_BISHOP")
             if i == 7 and j == 3:
-                node.piece = ChessPiece("W_QUEEN")
+                node.piece = ChessPiece('W',"W_QUEEN")
             if i == 7 and j == 4:
-                node.piece = ChessPiece("W_KING")
+                node.piece = ChessPiece('W', "W_KING")
             count+=1
             grid[i].append(node)
     return grid
@@ -161,33 +161,35 @@ class Piece:
 
 #Class representing a chess piece
 class ChessPiece:
-    def __init__(self, team):
+    def __init__(self, team, type):
         self.team=team
-        if self.team == "W_PAWN":
-            self.image= WHITEPAWN
-        if self.team == "W_ROOK":
-            self.image = WHITEROOK
-        if self.team == "W_KNIGHT":
-            self.image = WHITEKNIGHT
-        if self.team == "W_BISHOP":
-            self.image = WHITEBISHOP
-        if self.team == "W_QUEEN":
-            self.image = WHITEQUEEN
-        if self.team == "W_KING":
-            self.image = WHITEKING
-        if self.team == "B_PAWN":
-            self.image= BLACKPAWN
-        if self.team == "B_ROOK":
-            self.image = BLACKROOK
-        if self.team == "B_KNIGHT":
-            self.image = BLACKKNIGHT
-        if self.team == "B_BISHOP":
-            self.image = BLACKBISHOP
-        if self.team == "B_QUEEN":
-            self.image = BLACKQUEEN
-        if self.team == "B_KING":
-            self.image = BLACKKING
-        self.type=None
+        self.type=type
+        if self.team == 'W':
+            if self.type == "W_PAWN":
+                self.image= WHITEPAWN
+            if self.type == "W_ROOK":
+                self.image = WHITEROOK
+            if self.type == "W_KNIGHT":
+                self.image = WHITEKNIGHT
+            if self.type == "W_BISHOP":
+                self.image = WHITEBISHOP
+            if self.type == "W_QUEEN":
+                self.image = WHITEQUEEN
+            if self.type == "W_KING":
+                self.image = WHITEKING
+        elif self.team == 'B':
+            if self.type == "B_PAWN":
+                self.image= BLACKPAWN
+            if self.type == "B_ROOK":
+                self.image = BLACKROOK
+            if self.type == "B_KNIGHT":
+                self.image = BLACKKNIGHT
+            if self.type == "B_BISHOP":
+                self.image = BLACKBISHOP
+            if self.type == "B_QUEEN":
+                self.image = BLACKQUEEN
+            if self.type == "B_KING":
+                self.image = BLACKKING
 
     def draw(self, x, y):
         WIN.blit(self.image, (x,y))
@@ -210,6 +212,15 @@ def resetColours(grid, node):
         nodeX, nodeY = colouredNodes
         grid[nodeX][nodeY].colour = BLACK if abs(nodeX - nodeY) % 2 == 0 else WHITE
 
+def resetChessColours(grid, node):
+    positions = generatePotentialChessMoves(node, grid)
+    positions.append(node)
+
+    for colouredNodes in positions:
+        nodeX, nodeY = colouredNodes
+        grid[nodeX][nodeY].colour = PINK if abs(nodeX - nodeY) % 2 == 1 else WHITE
+
+
 # Function to highlight potential moves on the game board
 def HighlightpotentialMoves(piecePosition, grid):
     positions = generatePotentialMoves(piecePosition, grid)
@@ -217,9 +228,18 @@ def HighlightpotentialMoves(piecePosition, grid):
         Column,Row = position
         grid[Column][Row].colour=BLUE
 
+def HighlightpotentialChessMoves(piecePosition, grid):
+    positions = generatePotentialChessMoves(piecePosition, grid)
+    for position in positions:
+        Column,Row = position
+        grid[Column][Row].colour=BLUE
+
 # Function to get the opposite team color
 def opposite(team):
     return "R" if team=="G" else "G"
+
+def oppositeChess(team):
+    return "B" if team=="W" else "W"
 
 # Function to generate potential moves for a given piece position
 def generatePotentialMoves(nodePosition, grid):
@@ -245,6 +265,31 @@ def generatePotentialMoves(nodePosition, grid):
 
     return positions
 
+def generatePotentialChessMoves(nodePosition, grid):
+    checker = lambda x,y: x+y>=0 and x+y<8
+    positions= []
+    column, row = nodePosition
+    if grid[column][row].piece:
+        if grid[column][row].piece.team=='W':
+            if grid[column][row].piece.type=='W_PAWN':
+                vectors = [[-1, 0], [-2, 0]]
+        if grid[column][row].piece.type=='B_PAWN':
+            vectors = [[1, 0], [2, 0]]
+        for vector in vectors:
+            columnVector, rowVector = vector
+            if checker(columnVector,column) and checker(rowVector,row):
+                #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
+                if not grid[(column+columnVector)][(row+rowVector)].piece:
+                    positions.append((column + columnVector, row + rowVector))
+                elif grid[column+columnVector][row+rowVector].piece and\
+                        grid[column+columnVector][row+rowVector].piece.team==oppositeChess(grid[column][row].piece.team):
+
+                    if checker((2* columnVector), column) and checker((2* rowVector), row) \
+                            and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
+                        positions.append((2* columnVector+ column,2* rowVector+ row ))
+
+    return positions
+
 
 """
 Error with locating possible moves row col error
@@ -256,6 +301,14 @@ def highlight(ClickedNode, Grid, OldHighlight):
     if OldHighlight:
         resetColours(Grid, OldHighlight)
     HighlightpotentialMoves(ClickedNode, Grid)
+    return (Column,Row)
+
+def Chesshighlight(ClickedNode, Grid, OldHighlight):
+    Column,Row = ClickedNode
+    Grid[Column][Row].colour=ORANGE
+    if OldHighlight:
+        resetChessColours(Grid, OldHighlight)
+    HighlightpotentialChessMoves(ClickedNode, Grid)
     return (Column,Row)
 
 # Function to move a game piece on the board
@@ -280,6 +333,28 @@ def move(grid, piecePosition, newPosition):
         grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
         return grid[newColumn][newRow].piece.team
     return opposite(grid[newColumn][newRow].piece.team)
+
+def moveChess(grid, piecePosition, newPosition):
+    resetChessColours(grid, piecePosition)
+    newColumn, newRow = newPosition
+    oldColumn, oldRow = piecePosition
+
+    piece = grid[oldColumn][oldRow].piece
+    grid[newColumn][newRow].piece=piece
+    grid[oldColumn][oldRow].piece = None
+
+    # Check for king status and update piece type and image
+    if newColumn==7 and grid[newColumn][newRow].piece.team=='W':
+        grid[newColumn][newRow].piece.type='KING'
+        grid[newColumn][newRow].piece.image=REDKING
+    if newColumn==0 and grid[newColumn][newRow].piece.team=='B':
+        grid[newColumn][newRow].piece.type='KING'
+        grid[newColumn][newRow].piece.image=GREENKING
+    # Check for capturing move and remove captured piece
+    if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
+        grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
+        return grid[newColumn][newRow].piece.team
+    return oppositeChess(grid[newColumn][newRow].piece.team)
 
 #WINNER
 def check_for_winner(grid):
@@ -311,7 +386,6 @@ def reset_game(grid):
 # Main function to run the game loop
 def main(WIDTH, ROWS):
     highlightedPiece = None
-    currMove = 'G'
 
     game_over = False
 
@@ -337,6 +411,7 @@ def main(WIDTH, ROWS):
     if gameMode == 1:
         #while True:
         print("Playing Checkers")
+        currMove = 'G'
         grid = make_grid(ROWS, WIDTH)
         while not game_over:
             for event in pygame.event.get():
@@ -373,29 +448,33 @@ def main(WIDTH, ROWS):
     #Lets play Chess
     elif gameMode == 2:
         print("Playing Chess")
+        currMove = 'W'
         grid = make_grid_chess(ROWS, WIDTH)
         while not game_over:
             for event in pygame.event.get():
+                #If the game exited
                 if event.type== pygame.QUIT:
                     print('EXIT SUCCESSFUL')
                     pygame.quit()
                     sys.exit()
 
+                #When the mouse is clicked
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
+                    #
                     if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            resetColours(grid, highlightedPiece)
-                            currMove=move(grid, highlightedPiece, clickedNode)
+                            resetChessColours(grid, highlightedPiece)
+                            currMove=moveChess(grid, highlightedPiece, clickedNode)
                     elif highlightedPiece == clickedNode:
                         pass
                     else:
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
-                                highlightedPiece = highlight(clickedNode, grid, highlightedPiece)
+                                highlightedPiece = Chesshighlight(clickedNode, grid, highlightedPiece)
 
             # Check for a winning condition
             winner = check_for_winner(grid)

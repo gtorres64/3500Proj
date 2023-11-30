@@ -51,6 +51,7 @@ BLACK = (0,0,0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 PINK = (255, 0, 255)
+GREEN = (0, 255, 0)
 
 # Initialize Pygame
 pygame.init()
@@ -346,12 +347,14 @@ def generatePotentialChessMoves(nodePosition, grid):
                 #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
                     positions.append((column + columnVector, row + rowVector))
+                #Checks the jump piece, edit the if statement to tell the player a capture is possible
+                #CHANGE THIS VVV
                 elif grid[column+columnVector][row+rowVector].piece and\
                         grid[column+columnVector][row+rowVector].piece.team==oppositeChess(grid[column][row].piece.team):
-
+                    #Tell the player a capture is possible
                     if checker((2* columnVector), column) and checker((2* rowVector), row) \
                             and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
-                        positions.append((2* columnVector+ column,2* rowVector+ row ))
+                        pass
 
     return positions
 
@@ -546,14 +549,19 @@ def main(WIDTH, ROWS):
                     print('EXIT SUCCESSFUL')
                     pygame.quit()
                     sys.exit()
-
+                #Take action when mouse is clicked
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    #Gets the clicked node
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
+                    #If statement if the user clicks a highlighted node
                     if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                        #Get the column and row of the highlighted piece
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
+                        #Checking if it is the current player's turn
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            #Reset the colors after moving, then move the actual piece to the clicked node
                             resetColours(grid, highlightedPiece)
                             currMove=move(grid, highlightedPiece, clickedNode)
 
@@ -561,9 +569,11 @@ def main(WIDTH, ROWS):
                             if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
                                 print("Stalemate! It's a draw!")
 
+                    #Nothing happens if the user clicks the selected piece
                     elif highlightedPiece == clickedNode:
                         pass
                     else:
+                        #Highlight a piece when the player clicks if it belongs to the player
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
                                 highlightedPiece = highlight(clickedNode, grid, highlightedPiece)

@@ -20,8 +20,6 @@ filename = os.path.join(dirname, 'relative/path/to/file/you/want')
 WIDTH = 800
 ROWS = 8
 
-IMAGE_SIZE = (200, 200)
-
 # Load images for the game pieces and board
 RED= pygame.image.load(os.path.join(dirname, 'images/red.png'))
 GREEN= pygame.image.load(os.path.join(dirname, 'images/green.png'))
@@ -51,7 +49,7 @@ BLACK = (0,0,0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 PINK = (255, 0, 255)
-GREEN = (0, 255, 0)
+GREENGRID = (0, 255, 0)
 
 # Initialize Pygame
 pygame.init()
@@ -232,9 +230,16 @@ def HighlightpotentialMoves(piecePosition, grid):
 
 def HighlightpotentialChessMoves(piecePosition, grid):
     positions = generatePotentialChessMoves(piecePosition, grid)
+    clickedColumn, clickedRow = piecePosition
     for position in positions:
         Column,Row = position
         grid[Column][Row].colour=BLUE
+        #Making sure there is a piece on the space
+        if grid[Column][Row].piece:
+            #If the clicked piece and a highlighted piece are not on the same team
+            if grid[clickedColumn][clickedRow].piece.team != grid[Column][Row].piece.team:
+                #Lets highlight capturable peices to green!
+                grid[Column][Row].colour=GREENGRID
 
 # Function to get the opposite team color
 def opposite(team):
@@ -278,12 +283,97 @@ def generatePotentialMoves(nodePosition, grid):
 
     return positions
 
+def queenMoves(nodePosition, grid):
+    checker = lambda x,y: x+y>=0 and x+y<8
+    column, row = nodePosition
+    #For loop to begin calculating the new vector
+    #We will append to this vector and dynamically create the moves
+    vectors = []
+    for vector0, vector1 in [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]:
+        for j in range(1, 8):
+            #We will take each vector from the inital list
+            #And multiply the y and x by j then append it to the vectors list
+            #This will give us the complete move list
+            newvector0, newvector1 = vector0 * j, vector1 * j
+            newcolumn, newrow = column + j * vector0, row + j * vector1
+            #We need to check if the new vector is in bounds
+            if not 0 <= newcolumn < ROWS or not 0 <= newrow < ROWS:
+                break
+            #Stop generating in this direction if there is a piece in the way
+            #We also need to specify if its an opposite piece, which we can capture
+            if grid[newcolumn][newrow].piece:
+                if grid[newcolumn][newrow].piece.team != grid[column][row].piece.team:
+                    vectors.append([newvector0, newvector1])
+                break
+            vectors.append([newvector0, newvector1])
+
+    return vectors
+
+def rookMoves(nodePosition, grid):
+    checker = lambda x,y: x+y>=0 and x+y<8
+    column, row = nodePosition
+    #For loop to begin calculating the new vector
+    #We will append to this vector and dynamically create the moves
+    vectors = []
+    for vector0, vector1 in [[1, 0], [-1, 0], [0, 1], [0, -1]]:
+        for j in range(1, 8):
+            #We will take each vector from the inital list
+            #And multiply the y and x by j then append it to the vectors list
+            #This will give us the complete move list
+            newvector0, newvector1 = vector0 * j, vector1 * j
+            newcolumn, newrow = column + j * vector0, row + j * vector1
+            #We need to check if the new vector is in bounds
+            if not 0 <= newcolumn < ROWS or not 0 <= newrow < ROWS:
+                break
+            #Stop generating in this direction if there is a piece in the way
+            #We also need to specify if its an opposite piece, which we can capture
+            if grid[newcolumn][newrow].piece:
+                if grid[newcolumn][newrow].piece.team != grid[column][row].piece.team:
+                    vectors.append([newvector0, newvector1])
+                break
+            vectors.append([newvector0, newvector1])
+
+    return vectors
+
+def bishopMoves(nodePosition, grid):
+    checker = lambda x,y: x+y>=0 and x+y<8
+    column, row = nodePosition
+    #For loop to begin calculating the new vector
+    #We will append to this vector and dynamically create the moves
+    vectors = []
+    for vector0, vector1 in [[1, 1], [-1, 1], [1, -1], [-1, -1]]:
+        for j in range(1, 8):
+            #We will take each vector from the inital list
+            #And multiply the y and x by j then append it to the vectors list
+            #This will give us the complete move list
+            newvector0, newvector1 = vector0 * j, vector1 * j
+            newcolumn, newrow = column + j * vector0, row + j * vector1
+            #We need to check if the new vector is in bounds
+            if not 0 <= newcolumn < ROWS or not 0 <= newrow < ROWS:
+                break
+            #Stop generating in this direction if there is a piece in the way
+            #We also need to specify if its an opposite piece, which we can capture
+            if grid[newcolumn][newrow].piece:
+                if grid[newcolumn][newrow].piece.team != grid[column][row].piece.team:
+                    vectors.append([newvector0, newvector1])
+                break
+            vectors.append([newvector0, newvector1])
+
+    return vectors
+
+
+#Generate potential chess moves
+#The Pawns, King and Knights are simple enough, 
+#but the Queen, Rook and Bishop can travel far
+#We need to dynamically generate a vector in case there is a piece in the way
 def generatePotentialChessMoves(nodePosition, grid):
     checker = lambda x,y: x+y>=0 and x+y<8
     positions= []
     column, row = nodePosition
     if grid[column][row].piece:
+        #We need to specify the team color
         if grid[column][row].piece.team=='W':
+            #Specifying each peice and their possible moves
             if grid[column][row].piece.type=='W_PAWN':
                 if grid[column][row].piece.turnCount == 0:
                     vectors = [[-1, 0], [-2, 0]]
@@ -292,27 +382,15 @@ def generatePotentialChessMoves(nodePosition, grid):
             if grid[column][row].piece.type=='W_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
             if grid[column][row].piece.type=='W_QUEEN':
-                vectors = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], 
-                           [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0], [-6, 0], [-7, 0], 
-                           [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
-                           [0, -1], [0, -2], [0, -3], [0, -4], [0, -5], [0, -6], [0, -7],
-                           [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7],
-                           [-1, 1], [-2, 2], [-3, 3], [-4, 4], [-5, 5], [-6, 6], [-7, 7],
-                           [1, -1], [2, -2], [3, -3], [4, -4], [5, -5], [6, -6], [7, -7],
-                           [-1, -1], [-2, -2], [-3, -3], [-4, -4], [-5, -5], [-6, -6], [-7, -7]]
+                vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='W_ROOK':
-                vectors = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], 
-                           [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0], [-6, 0], [-7, 0], 
-                           [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
-                           [0, -1], [0, -2], [0, -3], [0, -4], [0, -5], [0, -6], [0, -7]]
+                vectors = rookMoves(nodePosition, grid)
             if grid[column][row].piece.type=='W_KNIGHT':
                 vectors = [[2, -1], [1, -2], [2, 1], [1, 2], [-2, -1], [-1, -2], [-2, 1], [-1, 2]]
             if grid[column][row].piece.type=='W_BISHOP':
-                vectors = [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7],
-                           [-1, 1], [-2, 2], [-3, 3], [-4, 4], [-5, 5], [-6, 6], [-7, 7],
-                           [1, -1], [2, -2], [3, -3], [4, -4], [5, -5], [6, -6], [7, -7],
-                           [-1, -1], [-2, -2], [-3, -3], [-4, -4], [-5, -5], [-6, -6], [-7, -7]]
+                vectors = bishopMoves(nodePosition, grid)
         else:
+            #Black team peices
             if grid[column][row].piece.type=='B_PAWN':
                 if grid[column][row].piece.turnCount == 0:
                     vectors = [[1, 0], [2, 0]]
@@ -321,40 +399,28 @@ def generatePotentialChessMoves(nodePosition, grid):
             if grid[column][row].piece.type=='B_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
             if grid[column][row].piece.type=='B_QUEEN':
-                vectors = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], 
-                           [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0], [-6, 0], [-7, 0], 
-                           [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
-                           [0, -1], [0, -2], [0, -3], [0, -4], [0, -5], [0, -6], [0, -7],
-                           [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7],
-                           [-1, 1], [-2, 2], [-3, 3], [-4, 4], [-5, 5], [-6, 6], [-7, 7],
-                           [1, -1], [2, -2], [3, -3], [4, -4], [5, -5], [6, -6], [7, -7],
-                           [-1, -1], [-2, -2], [-3, -3], [-4, -4], [-5, -5], [-6, -6], [-7, -7]]
+                vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='B_ROOK':
-                vectors = [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], 
-                           [-1, 0], [-2, 0], [-3, 0], [-4, 0], [-5, 0], [-6, 0], [-7, 0], 
-                           [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7],
-                           [0, -1], [0, -2], [0, -3], [0, -4], [0, -5], [0, -6], [0, -7]]
+                vectors = rookMoves(nodePosition, grid)
             if grid[column][row].piece.type=='B_KNIGHT':
                 vectors = [[2, -1], [1, -2], [2, 1], [1, 2], [-2, -1], [-1, -2], [-2, 1], [-1, 2]]
             if grid[column][row].piece.type=='B_BISHOP':
-                vectors = [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7],
-                           [-1, 1], [-2, 2], [-3, 3], [-4, 4], [-5, 5], [-6, 6], [-7, 7],
-                           [1, -1], [2, -2], [3, -3], [4, -4], [5, -5], [6, -6], [7, -7],
-                           [-1, -1], [-2, -2], [-3, -3], [-4, -4], [-5, -5], [-6, -6], [-7, -7]]
+                vectors = bishopMoves(nodePosition, grid)
+        #This for loop will generate valid moves which means:
+        #Making sure there is not piece in the grid vector
         for vector in vectors:
             columnVector, rowVector = vector
             if checker(columnVector,column) and checker(rowVector,row):
                 #grid[(column+columnVector)][(row+rowVector)].colour=ORANGE
+                #Checking if the grid does NOT have a piece, we must change to
+                #Make sure the peice is actually on the same team.
+                #If it is, we must change color to signify we can capture.
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
                     positions.append((column + columnVector, row + rowVector))
-                #Checks the jump piece, edit the if statement to tell the player a capture is possible
-                #CHANGE THIS VVV
-                elif grid[column+columnVector][row+rowVector].piece and\
-                        grid[column+columnVector][row+rowVector].piece.team==oppositeChess(grid[column][row].piece.team):
-                    #Tell the player a capture is possible
-                    if checker((2* columnVector), column) and checker((2* rowVector), row) \
-                            and not grid[(2* columnVector)+ column][(2* rowVector) + row].piece:
-                        pass
+                else:
+                    if grid[(column)][(row)].piece.team != grid[(column+columnVector)][(row+rowVector)].piece.team:
+                        positions.append((column + columnVector, row + rowVector))
+                
 
     return positions
 
@@ -403,7 +469,6 @@ def move(grid, piecePosition, newPosition):
     return opposite(grid[newColumn][newRow].piece.team)
 
 def moveChess(grid, piecePosition, newPosition):
-    print("New move!")
     resetChessColours(grid, piecePosition)
     newColumn, newRow = newPosition
     oldColumn, oldRow = piecePosition
@@ -476,12 +541,6 @@ def moveChess(grid, piecePosition, newPosition):
                         grid[newColumn][newRow].piece.type='B_ROOK'
                         grid[newColumn][newRow].piece.image=BLACKROOK
                         promotion = False
-    # Check for capturing move and remove captured piece
-    # CHANGE THIS
-    if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
-        grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
-        return grid[newColumn][newRow].piece.team
-    return oppositeChess(grid[newColumn][newRow].piece.team)
 
 #WINNER
 def check_for_winner(grid):
@@ -610,7 +669,15 @@ def main(WIDTH, ROWS):
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
                             resetChessColours(grid, highlightedPiece)
-                            currMove=moveChess(grid, highlightedPiece, clickedNode)
+                            moveChess(grid, highlightedPiece, clickedNode)
+                            currMove = oppositeChess(currMove)
+                    elif grid[ClickedPositionColumn][ClickedPositionRow].colour == GREENGRID:
+                        if highlightedPiece:
+                            pieceColumn, pieceRow = highlightedPiece
+                        if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            resetChessColours(grid, highlightedPiece)
+                            moveChess(grid, highlightedPiece, clickedNode)
+                            currMove = oppositeChess(currMove)
                     elif highlightedPiece == clickedNode:
                         pass
                     else:

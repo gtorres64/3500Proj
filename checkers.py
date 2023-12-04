@@ -42,6 +42,8 @@ BLACKKNIGHT = pygame.image.load(os.path.join(dirname, 'images/bN.svg'))
 BLACKBISHOP = pygame.image.load(os.path.join(dirname, 'images/bB.svg'))
 BLACKPAWN = pygame.image.load(os.path.join(dirname, 'images/bP.svg'))
 
+lastMove = None
+
 
 # Define color constants
 WHITE = (255,255,255)
@@ -50,6 +52,7 @@ ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 PINK = (255, 0, 255)
 GREENGRID = (0, 255, 0)
+ENPASSANT = (0, 0, 255)
 
 # Initialize Pygame
 pygame.init()
@@ -164,6 +167,7 @@ class ChessPiece:
         self.team=team
         self.type=type
         self.turnCount=0
+        self.enPassant=0
         if self.team == 'W':
             if self.type == "W_PAWN":
                 self.image= WHITEPAWN
@@ -194,6 +198,14 @@ class ChessPiece:
     def draw(self, x, y):
         WIN.blit(self.image, (x,y))
 
+class PrevMove:
+    def __init__(self, piece, start, end, move=None):
+        self.piece=piece
+        self.start=start
+        self.end=end
+        self.count=0
+        self.move=move
+
 
 # Function to get the node position based on mouse coordinates
 def getNode(grid, rows, width):
@@ -213,12 +225,9 @@ def resetColours(grid, node):
         grid[nodeX][nodeY].colour = BLACK if abs(nodeX - nodeY) % 2 == 0 else WHITE
 
 def resetChessColours(grid, node):
-    positions = generatePotentialChessMoves(node, grid)
-    positions.append(node)
-
-    for colouredNodes in positions:
-        nodeX, nodeY = colouredNodes
-        grid[nodeX][nodeY].colour = PINK if abs(nodeX - nodeY) % 2 == 1 else WHITE
+    for nodeX in range(0,8):
+        for nodeY in range(0,8):
+            grid[nodeX][nodeY].colour = PINK if abs(nodeX - nodeY) % 2 == 1 else WHITE
 
 
 # Function to highlight potential moves on the game board
@@ -228,8 +237,8 @@ def HighlightpotentialMoves(piecePosition, grid):
         Column,Row = position
         grid[Column][Row].colour=BLUE
 
-def HighlightpotentialChessMoves(piecePosition, grid):
-    positions = generatePotentialChessMoves(piecePosition, grid)
+def HighlightpotentialChessMoves(piecePosition, grid, lastMove):
+    positions = generatePotentialChessMoves(piecePosition, grid, lastMove)
     clickedColumn, clickedRow = piecePosition
     for position in positions:
         Column,Row = position
@@ -361,12 +370,119 @@ def bishopMoves(nodePosition, grid):
 
     return vectors
 
+def pawnMoves(nodePosition, grid, lastMove):
+    column, row = nodePosition
+    vectors = []
+    #If statement seperates white and black pawn
+    if grid[column][row].piece.type == "W_PAWN":
+        #Checking if there is a piece in front
+        if not grid[column-1][row].piece:
+            #Highlight the square in front
+            vectors.append([-1, 0])
+            #Checking what turn the pawn is on
+            if grid[column][row].piece.turnCount == 0:
+                #If its the first turn, we can go two spaces
+                if not grid[column-2][row].piece:
+                    vectors.append([-2, 0])
+        #Now we need to check for capturable pieces
+        if row != 0 and row != 7:
+            if grid[column-1][row-1].piece:
+                if grid[column][row].piece.team != grid[column-1][row-1].piece:
+                    vectors.append([-1, -1])
+            if grid[column-1][row+1].piece:
+                if grid[column][row].piece.team != grid[column-1][row+1].piece:
+                    vectors.append([-1, 1])
+        elif row == 0:
+            if grid[column-1][row+1].piece:
+                if grid[column][row].piece.team != grid[column-1][row+1].piece:
+                    vectors.append([-1, 1])
+        elif row == 7:
+            if grid[column-1][row-1].piece:
+                if grid[column][row].piece.team != grid[column-1][row-1].piece:
+                    vectors.append([-1, -1])
+        #Checking for en passant
+        if row != 0 and row != 7:
+            if (grid[column][row-1].piece and grid[column][row-1].piece.type == "B_PAWN"
+                and grid[column][row-1].piece.turnCount == 1):
+                if (grid[column][row].piece.team != grid[column][row-1].piece and
+                    row-1 == lastMove.end[1]):
+                    vectors.append([-1, -1])
+                    grid[column][row-1].colour = ENPASSANT
+            if (grid[column][row+1].piece and grid[column][row+1].piece.type == "B_PAWN"
+                and grid[column][row+1].piece.turnCount == 1):
+                if (grid[column][row].piece.team != grid[column][row+1].piece and
+                    row+1 == lastMove.end[1]):
+                    vectors.append([-1, 1])
+                    grid[column][row+1].colour = ENPASSANT
+        elif row == 0:
+            if (grid[column][row+1].piece and grid[column][row+1].piece.type == "B_PAWN"
+                and grid[column][row+1].piece.turnCount == 1):
+                if (grid[column][row].piece.team != grid[column][row+1].piece and
+                    row+1 == lastMove.end[1]):
+                    vectors.append([-1, 1])
+                    grid[column][row+1].colour = ENPASSANT
+        elif row == 7:
+            if (grid[column][row-1].piece and grid[column][row-1].piece.type == "B_PAWN"
+                and grid[column][row-1].piece.turnCount == 1):
+                if (grid[column][row].piece.team != grid[column][row-1].piece and
+                    row-1 == lastMove.end[1]):
+                    vectors.append([-1, -1])
+                    grid[column][row-1].colour = ENPASSANT
+    #Checking the black pawn
+    if grid[column][row].piece.type == "B_PAWN":
+        if not grid[column+1][row].piece:
+            vectors.append([1,0])
+            if grid[column][row].piece.turnCount == 0:
+                if not grid[column+2][row].piece:
+                    vectors.append([2, 0])
+        if row != 0 and row != 7:
+            if grid[column+1][row-1].piece:
+                if grid[column][row].piece.team != grid[column+1][row-1].piece:
+                    vectors.append([1, -1])
+            if grid[column+1][row+1].piece:
+                if grid[column][row].piece.team != grid[column+1][row+1].piece:
+                    vectors.append([1, 1])
+        elif row == 0:
+            if grid[column+1][row+1].piece:
+                if grid[column][row].piece.team != grid[column+1][row+1].piece:
+                    vectors.append([1, 1])
+        elif row == 7:
+            if grid[column+1][row-1].piece:
+                if grid[column][row].piece.team != grid[column+1][row-1].piece:
+                    vectors.append([1, -1])
+        #Checking for en passant
+        #Making sure we dont go out of bounds
+        if row != 0 and row != 7:
+            if (grid[column][row-1].piece and grid[column][row-1].piece.type == "W_PAWN"
+                and grid[column][row-1].piece.turnCount == 1):
+                if grid[column][row].piece.team != grid[column][row-1].piece:
+                    vectors.append([1, -1])
+                    grid[column][row-1].colour = ENPASSANT
+            if (grid[column][row+1].piece and grid[column][row+1].piece.type == "W_PAWN"
+                and grid[column][row+1].piece.turnCount == 1):
+                if grid[column][row].piece.team != grid[column][row+1].piece:
+                    vectors.append([1, 1])
+                    grid[column][row+1].colour = ENPASSANT
+        elif row == 0:
+            if (grid[column][row+1].piece and grid[column][row+1].piece.type == "W_PAWN"
+                and grid[column][row+1].piece.turnCount == 1):
+                if grid[column][row].piece.team != grid[column][row+1].piece:
+                    vectors.append([1, 1])
+                    grid[column][row+1].colour = ENPASSANT
+        elif row == 7:
+            if (grid[column][row-1].piece and grid[column][row-1].piece.type == "W_PAWN"
+                and grid[column][row-1].piece.turnCount == 1):
+                if grid[column][row].piece.team != grid[column][row-1].piece:
+                    vectors.append([1, -1])
+                    grid[column][row-1].colour = ENPASSANT
+
+    return vectors
 
 #Generate potential chess moves
 #The Pawns, King and Knights are simple enough, 
 #but the Queen, Rook and Bishop can travel far
 #We need to dynamically generate a vector in case there is a piece in the way
-def generatePotentialChessMoves(nodePosition, grid):
+def generatePotentialChessMoves(nodePosition, grid, lastMove):
     checker = lambda x,y: x+y>=0 and x+y<8
     positions= []
     column, row = nodePosition
@@ -375,10 +491,7 @@ def generatePotentialChessMoves(nodePosition, grid):
         if grid[column][row].piece.team=='W':
             #Specifying each peice and their possible moves
             if grid[column][row].piece.type=='W_PAWN':
-                if grid[column][row].piece.turnCount == 0:
-                    vectors = [[-1, 0], [-2, 0]]
-                else:
-                    vectors = [[-1, 0]]
+                vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='W_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
             if grid[column][row].piece.type=='W_QUEEN':
@@ -392,10 +505,7 @@ def generatePotentialChessMoves(nodePosition, grid):
         else:
             #Black team peices
             if grid[column][row].piece.type=='B_PAWN':
-                if grid[column][row].piece.turnCount == 0:
-                    vectors = [[1, 0], [2, 0]]
-                else:
-                    vectors = [[1, 0]]
+                vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='B_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
             if grid[column][row].piece.type=='B_QUEEN':
@@ -418,9 +528,10 @@ def generatePotentialChessMoves(nodePosition, grid):
                 if not grid[(column+columnVector)][(row+rowVector)].piece:
                     positions.append((column + columnVector, row + rowVector))
                 else:
+                    #Special case for pawns since they capture diagonally
                     if grid[(column)][(row)].piece.team != grid[(column+columnVector)][(row+rowVector)].piece.team:
                         positions.append((column + columnVector, row + rowVector))
-                
+
 
     return positions
 
@@ -437,12 +548,12 @@ def highlight(ClickedNode, Grid, OldHighlight):
     HighlightpotentialMoves(ClickedNode, Grid)
     return (Column,Row)
 
-def Chesshighlight(ClickedNode, Grid, OldHighlight):
+def Chesshighlight(ClickedNode, Grid, OldHighlight, lastMove):
     Column,Row = ClickedNode
     Grid[Column][Row].colour=ORANGE
     if OldHighlight:
         resetChessColours(Grid, OldHighlight)
-    HighlightpotentialChessMoves(ClickedNode, Grid)
+    HighlightpotentialChessMoves(ClickedNode, Grid, lastMove)
     return (Column,Row)
 
 # Function to move a game piece on the board
@@ -468,15 +579,27 @@ def move(grid, piecePosition, newPosition):
         return grid[newColumn][newRow].piece.team
     return opposite(grid[newColumn][newRow].piece.team)
 
-def moveChess(grid, piecePosition, newPosition):
-    resetChessColours(grid, piecePosition)
+def moveChess(grid, piecePosition, newPosition, prevMove):
     newColumn, newRow = newPosition
     oldColumn, oldRow = piecePosition
 
     piece = grid[oldColumn][oldRow].piece
     grid[newColumn][newRow].piece=piece
     grid[oldColumn][oldRow].piece = None
-    grid[newColumn][newRow].piece.turnCount+=1
+    if grid[newColumn][newRow].piece:
+        grid[newColumn][newRow].piece.turnCount+=1
+
+    lastMove = PrevMove(piece, piecePosition, newPosition)
+
+    if (grid[newColumn+1][newRow].piece and grid[newColumn+1][newRow].colour == ENPASSANT
+        and grid[newColumn][newRow].piece.type == "W_PAWN"):
+        grid[newColumn+1][newRow].piece = None
+        
+    elif (grid[newColumn-1][newRow].piece and grid[newColumn-1][newRow].colour == ENPASSANT
+        and grid[newColumn][newRow].piece.type == "B_PAWN"):
+        grid[newColumn-1][newRow].piece = None
+
+    resetChessColours(grid, piecePosition)
 
     # Promote the pawn into another piece
     if newColumn==0 and grid[newColumn][newRow].piece.type=='W_PAWN':
@@ -541,6 +664,7 @@ def moveChess(grid, piecePosition, newPosition):
                         grid[newColumn][newRow].piece.type='B_ROOK'
                         grid[newColumn][newRow].piece.image=BLACKROOK
                         promotion = False
+    return lastMove
 
 #WINNER
 def check_for_winner(grid):
@@ -651,6 +775,7 @@ def main(WIDTH, ROWS):
         print("Playing Chess")
         currMove = 'W'
         grid = make_grid_chess(ROWS, WIDTH)
+        lastMove = None
         while not game_over:
             for event in pygame.event.get():
                 #If the game exited
@@ -663,30 +788,34 @@ def main(WIDTH, ROWS):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
-                    #
+                    # Will execute when a piece is highlighted blue, move the piece to an empty space
                     if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            lastMove=moveChess(grid, highlightedPiece, clickedNode, lastMove)
                             resetChessColours(grid, highlightedPiece)
-                            moveChess(grid, highlightedPiece, clickedNode)
                             currMove = oppositeChess(currMove)
+                    # Code for capturing pieces, highlighted in green
                     elif grid[ClickedPositionColumn][ClickedPositionRow].colour == GREENGRID:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            resetChessColours(grid, highlightedPiece)
                             moveChess(grid, highlightedPiece, clickedNode)
+                            resetChessColours(grid, highlightedPiece)
                             currMove = oppositeChess(currMove)
+                    # Do nothing if we click the same peice
                     elif highlightedPiece == clickedNode:
                         pass
+                    # Other case
                     else:
+                        #If the clicked node has a piece and belongs to the same team, we can highlight it
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
-                                highlightedPiece = Chesshighlight(clickedNode, grid, highlightedPiece)
+                                highlightedPiece = Chesshighlight(clickedNode, grid, highlightedPiece, lastMove)
 
             # Check for a winning condition
-            winner = check_for_winner(grid)
+            #winner = check_for_winner(grid)
             ##if winner is not None:
             ##    print(f"Player {winner} wins!")
             ##    reset_game(grid)

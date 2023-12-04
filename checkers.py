@@ -51,6 +51,7 @@ BLACK = (0,0,0)
 ORANGE = (235, 168, 52)
 BLUE = (76, 252, 241)
 PINK = (255, 0, 255)
+YELLOW = (255, 255, 0)
 GREENGRID = (0, 255, 0)
 ENPASSANT = (0, 0, 255)
 
@@ -167,7 +168,6 @@ class ChessPiece:
         self.team=team
         self.type=type
         self.turnCount=0
-        self.enPassant=0
         if self.team == 'W':
             if self.type == "W_PAWN":
                 self.image= WHITEPAWN
@@ -478,6 +478,30 @@ def pawnMoves(nodePosition, grid, lastMove):
 
     return vectors
 
+def kingSideCastle(grid, nodePosition):
+    column, row = nodePosition
+    if (grid[column][row].piece.type == "W_KING" and grid[column][row].piece.turnCount == 0 and grid[column][row+3].piece and
+        grid[column][row+3].piece.type == "W_ROOK" and grid[column][row+3].piece.turnCount == 0):
+        if not grid[column][row+1].piece and not grid[column][row+2].piece:
+            grid[column][row+2].colour = YELLOW
+    elif (grid[column][row].piece.type == "B_KING" and grid[column][row].piece.turnCount == 0 and grid[column][row+3].piece and
+        grid[column][row+3].piece.type == "B_ROOK" and grid[column][row+3].piece.turnCount == 0):
+        if not grid[column][row+1].piece and not grid[column][row+2].piece:
+            grid[column][row+2].colour = YELLOW
+    
+
+def queenSideCastle(grid, nodePosition):
+    column, row = nodePosition
+    if (grid[column][row].piece.type == "W_KING" and grid[column][row].piece.turnCount == 0 and grid[column][row-4].piece and
+        grid[column][row-4].piece.type == "W_ROOK" and grid[column][row-4].piece.turnCount == 0):
+        if not grid[column][row-1].piece and not grid[column][row-2].piece and not grid[column][row-3].piece:
+            grid[column][row-2].colour = YELLOW
+    elif (grid[column][row].piece.type == "B_KING" and grid[column][row].piece.turnCount == 0 and grid[column][row-4].piece and
+        grid[column][row-4].piece.type == "B_ROOK" and grid[column][row-4].piece.turnCount == 0):
+        if not grid[column][row-1].piece and not grid[column][row-2].piece and not grid[column][row-3].piece:
+            grid[column][row-2].colour = YELLOW
+
+
 #Generate potential chess moves
 #The Pawns, King and Knights are simple enough, 
 #but the Queen, Rook and Bishop can travel far
@@ -494,6 +518,8 @@ def generatePotentialChessMoves(nodePosition, grid, lastMove):
                 vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='W_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+                kingSideCastle(grid, nodePosition)
+                queenSideCastle(grid, nodePosition)
             if grid[column][row].piece.type=='W_QUEEN':
                 vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='W_ROOK':
@@ -508,6 +534,8 @@ def generatePotentialChessMoves(nodePosition, grid, lastMove):
                 vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='B_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+                kingSideCastle(grid, nodePosition)
+                queenSideCastle(grid, nodePosition)
             if grid[column][row].piece.type=='B_QUEEN':
                 vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='B_ROOK':
@@ -553,6 +581,7 @@ def Chesshighlight(ClickedNode, Grid, OldHighlight, lastMove):
     Grid[Column][Row].colour=ORANGE
     if OldHighlight:
         resetChessColours(Grid, OldHighlight)
+        Grid[Column][Row].colour=ORANGE
     HighlightpotentialChessMoves(ClickedNode, Grid, lastMove)
     return (Column,Row)
 
@@ -591,13 +620,35 @@ def moveChess(grid, piecePosition, newPosition, prevMove):
 
     lastMove = PrevMove(piece, piecePosition, newPosition)
 
-    if (grid[newColumn+1][newRow].piece and grid[newColumn+1][newRow].colour == ENPASSANT
-        and grid[newColumn][newRow].piece.type == "W_PAWN"):
-        grid[newColumn+1][newRow].piece = None
-        
-    elif (grid[newColumn-1][newRow].piece and grid[newColumn-1][newRow].colour == ENPASSANT
-        and grid[newColumn][newRow].piece.type == "B_PAWN"):
-        grid[newColumn-1][newRow].piece = None
+    # Special en passant case
+    if grid[newColumn][newRow].piece.type == "W_PAWN" or grid[newColumn][newRow].piece.type == "B_PAWN":
+        if (grid[newColumn+1][newRow].piece and grid[newColumn+1][newRow].colour == ENPASSANT
+            and grid[newColumn][newRow].piece.type == "W_PAWN"):
+            grid[newColumn+1][newRow].piece = None
+
+        elif (grid[newColumn-1][newRow].piece and grid[newColumn-1][newRow].colour == ENPASSANT
+            and grid[newColumn][newRow].piece.type == "B_PAWN"):
+            grid[newColumn-1][newRow].piece = None
+
+    # Castling
+    if grid[newColumn][newRow].colour == YELLOW and grid[newColumn][newRow].piece.type == "W_KING":
+        if newRow == 6:
+            grid[7][5].piece = grid[7][7].piece
+            grid[7][7].piece = None
+            grid[7][5].piece.turnCount+=1
+        elif newRow == 2:
+            grid[7][3].piece = grid[7][0].piece
+            grid[7][0].piece = None
+            grid[7][3].piece.turnCount+=1
+    elif grid[newColumn][newRow].colour == YELLOW and grid[newColumn][newRow].piece.type == "B_KING":
+        if newRow == 6:
+            grid[0][5].piece = grid[0][7].piece
+            grid[0][7].piece = None
+            grid[0][5].piece.turnCount+=1
+        elif newRow == 2:
+            grid[0][3].piece = grid[0][0].piece
+            grid[0][0].piece = None
+            grid[0][3].piece.turnCount+=1
 
     resetChessColours(grid, piecePosition)
 
@@ -801,9 +852,18 @@ def main(WIDTH, ROWS):
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            moveChess(grid, highlightedPiece, clickedNode)
+                            moveChess(grid, highlightedPiece, clickedNode, lastMove)
                             resetChessColours(grid, highlightedPiece)
                             currMove = oppositeChess(currMove)
+                    # A yellow node means we can castle, handle that here
+                    elif grid[ClickedPositionColumn][ClickedPositionRow].colour == YELLOW:
+                        if highlightedPiece:
+                            pieceColumn, pieceRow = highlightedPiece
+                        if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            moveChess(grid, highlightedPiece, clickedNode, lastMove)
+                            resetChessColours(grid, highlightedPiece)
+                            currMove = oppositeChess(currMove)
+                            
                     # Do nothing if we click the same peice
                     elif highlightedPiece == clickedNode:
                         pass

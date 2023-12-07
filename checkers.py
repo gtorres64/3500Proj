@@ -156,7 +156,7 @@ def draw_labels():
 
     # draw column labels
     for i in range(ROWS):
-        text = label_font.render(chr(65 + i), True, WHITE)
+        text = label_font.render(str(i + 1), True, WHITE)
         # create border for labels
         text_rect = text.get_rect(center=(WIDTH + label_gap // 2, (i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS))))
         pygame.draw.rect(WIN, BLACK, text_rect)
@@ -165,7 +165,7 @@ def draw_labels():
 
     # draw row labels
     for i in range(ROWS):
-        text = label_font.render(str(i + 1), True, WHITE)
+        text = label_font.render(chr(65 + i), True, WHITE)
         text_rect = text.get_rect(center=((i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS)), WIDTH + label_gap // 2))
         pygame.draw.rect(WIN, BLACK, text_rect)
         WIN.blit(text, text_rect)
@@ -572,18 +572,23 @@ def main(WIDTH, ROWS):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
-                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
-                        if highlightedPiece:
-                            pieceColumn, pieceRow = highlightedPiece
-                        if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            resetColours(grid, highlightedPiece)
-                            currMove=move(grid, highlightedPiece, clickedNode)
+                    
+                    if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
+                        if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                            if highlightedPiece:
+                                pieceColumn, pieceRow = highlightedPiece
+                            if currMove == grid[pieceColumn][pieceRow].piece.team:
+                                resetColours(grid, highlightedPiece)
+                                currMove=move(grid, highlightedPiece, clickedNode)
 
                             # check for stalemate after a move
                             if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
                                 print("Stalemate! It's a draw!")
 
                     elif highlightedPiece == clickedNode:
+                        pass
+                    elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
+                        # handle clicks outside playable grid area (ignore labels and border)
                         pass
                     else:
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:

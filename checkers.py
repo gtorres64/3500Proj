@@ -573,23 +573,28 @@ def main(WIDTH, ROWS):
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
                     
-                    if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
-                        if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
-                            if highlightedPiece:
-                                pieceColumn, pieceRow = highlightedPiece
-                            if currMove == grid[pieceColumn][pieceRow].piece.team:
-                                resetColours(grid, highlightedPiece)
-                                currMove=move(grid, highlightedPiece, clickedNode)
+                    if (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE
+                    ):
+                        if highlightedPiece:
+                            pieceColumn, pieceRow = highlightedPiece
+                        if currMove == grid[pieceColumn][pieceRow].piece.team:
+                            resetColours(grid, highlightedPiece)
+                            currMove=move(grid, highlightedPiece, clickedNode)
 
-                            # check for stalemate after a move
-                            if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
-                                print("Stalemate! It's a draw!")
+                        # check for stalemate after a move
+                        if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
+                            print("Stalemate! It's a draw!")
 
                     elif highlightedPiece == clickedNode:
                         pass
                     elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
-                        # handle clicks outside playable grid area (ignore labels and border)
-                        pass
+                        # checkif click is within grid boundaries 
+                        if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
+                            # handle clicks inside border but outside playable grid
+                            pass
                     else:
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
@@ -623,7 +628,12 @@ def main(WIDTH, ROWS):
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
                     #
-                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                    
+                    if (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE
+                    )
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
@@ -631,6 +641,9 @@ def main(WIDTH, ROWS):
                             currMove=moveChess(grid, highlightedPiece, clickedNode)
                     elif highlightedPiece == clickedNode:
                         pass
+                    elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
+                        if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
+                            pass
                     else:
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:

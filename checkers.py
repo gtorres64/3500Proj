@@ -866,24 +866,24 @@ def titleScreen():
     title_text = font.render("Welcome to Board Games!", True, WHITE)
     checkers_text = font.render("1: Play Checkers", True, BLUE)
     chess_text = font.render("2: Play Chess", True, BLUE)
-    #test_checkers_text = font.render("3: Play Test Checkers", True, BLUE)
-    #test_chess_text = font.render("4: Play Test Chess", True, BLUE)
+    test_checkers_text = font.render("3: Play Test Checkers", True, BLUE)
+    test_chess_text = font.render("4: Play Test Chess", True, BLUE)
     quit_text = font.render("0: Quit", True, BLUE)
 
     # Position the text on the screen
     title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 4))
     checkers_rect = checkers_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     chess_rect = chess_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
-    #test_checkers_rect = test_checkers_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100))
-    #test_chess_rect = test_chess_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
+    test_checkers_rect = test_checkers_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100))
+    test_chess_rect = test_chess_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
     quit_rect = quit_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 200))
 
     # Blit the text onto the screen
     WIN.blit(title_text, title_rect)
     WIN.blit(checkers_text, checkers_rect)
     WIN.blit(chess_text, chess_rect)
-    #WIN.blit(test_checkers_text, test_checkers_rect)
-   # WIN.blit(test_chess_text, test_chess_rect)
+    WIN.blit(test_checkers_text, test_checkers_rect)
+    WIN.blit(test_chess_text, test_chess_rect)
     WIN.blit(quit_text, quit_rect)
 
     pygame.display.flip()

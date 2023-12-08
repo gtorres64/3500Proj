@@ -616,8 +616,6 @@ def moveChess(grid, piecePosition, newPosition, lastMove):
 
     piece = grid[oldColumn][oldRow].piece
 
-    lastMove = PrevMove(piece, piecePosition, newPosition)
-
     gridCopy = duplicateGrid(grid, oldColumn, oldRow, newColumn, newRow)
     
     if checkCheck(gridCopy, piece.team, lastMove):
@@ -782,7 +780,7 @@ def checkMate(grid, currMove, lastMove, piecePosition, newPosition):
         for j in range(ROWS):
             node = grid[i][j]
             if node.piece and node.piece.team == currMove:
-                potentialMoves = generatePotentialChessMoves((i, j), grid, None, 0)
+                potentialMoves = generatePotentialChessMoves((i, j), grid, lastMove, 0)
                 for move in potentialMoves:
                     duplicatedGrid = duplicateGrid(grid, i, j, move[0], move[1])
                     if not checkCheck(duplicatedGrid, currMove, lastMove):
@@ -795,7 +793,7 @@ def validMove(grid, currMove, lastMove, piecePosition, newPosition):
         for j in range(8):
             node = grid[i][j]
             if node.piece and node.piece.team == currMove:
-                potentialMoves = generatePotentialChessMoves((i, j), grid, None, 0)
+                potentialMoves = generatePotentialChessMoves((i, j), grid, lastMove, 0)
 
                 for move in potentialMoves:
                     gridCopy = duplicateGrid(grid, i, j, move[0], move[1])

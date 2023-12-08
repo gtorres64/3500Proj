@@ -157,7 +157,7 @@ def draw_labels():
 
     # draw column labels
     for i in range(ROWS):
-        text = label_font.render(str(i + 1), True, WHITE)
+        text = label_font.render(str(8 - i), True, WHITE)
         # create border for labels
         text_rect = text.get_rect(center=(WIDTH + label_gap // 2, (i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS))))
         pygame.draw.rect(WIN, BLACK, text_rect)
@@ -919,12 +919,17 @@ def main(WIDTH, ROWS):
                             # check for stalemate after a move
                             if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
                                 print("Stalemate! It's a draw!")
+                                reset_game(grid)
+                                update_display(WIN, grid,ROWS,WIDTH)
+                                draw_labels()
+
+
 
                     #Nothing happens if the user clicks the selected piece
                     elif highlightedPiece == clickedNode:
                         pass
                     elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
-                        # checkif click is within grid boundaries 
+                        # check if click is within grid boundaries 
                         if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
                             # handle clicks inside border but outside playable grid
                             pass

@@ -561,27 +561,27 @@ def pawnMoves(nodePosition, grid, lastMove):
         #Making sure we dont go out of bounds
         if row != 0 and row != 7:
             if (grid[column][row-1].piece and grid[column][row-1].piece.type == "W_PAWN"
-                and grid[column][row-1].piece.turnCount == 1):
+                and grid[column][row-1].piece.turnCount == 1 and lastMove):
                 if (grid[column][row].piece.team != grid[column][row-1].piece and
                     row-1 == lastMove.end[1]):
                     vectors.append([1, -1])
                     grid[column][row-1].colour = ENPASSANT
             if (grid[column][row+1].piece and grid[column][row+1].piece.type == "W_PAWN"
-                and grid[column][row+1].piece.turnCount == 1):
+                and grid[column][row+1].piece.turnCount == 1 and lastMove):
                 if (grid[column][row].piece.team != grid[column][row+1].piece and
                     row+1 == lastMove.end[1]):
                     vectors.append([1, 1])
                     grid[column][row+1].colour = ENPASSANT
         elif row == 0:
             if (grid[column][row+1].piece and grid[column][row+1].piece.type == "W_PAWN"
-                and grid[column][row+1].piece.turnCount == 1):
+                and grid[column][row+1].piece.turnCount == 1 and lastMove):
                 if (grid[column][row].piece.team != grid[column][row+1].piece and
                     row+1 == lastMove.end[1]):
                     vectors.append([1, 1])
                     grid[column][row+1].colour = ENPASSANT
         elif row == 7:
             if (grid[column][row-1].piece and grid[column][row-1].piece.type == "W_PAWN"
-                and grid[column][row-1].piece.turnCount == 1):
+                and grid[column][row-1].piece.turnCount == 1 and lastMove):
                 if (grid[column][row].piece.team != grid[column][row-1].piece and
                     row-1 == lastMove.end[1]):
                     vectors.append([1, -1])

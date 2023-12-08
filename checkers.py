@@ -155,16 +155,16 @@ def draw_labels():
     # define font for labels
     label_font = pygame.font.Font(None, 36) 
 
-    # draw column labels
+    # draw column labels 8-1
     for i in range(ROWS):
-        text = label_font.render(str(8 - i), True, WHITE)
+        text = label_font.render(str(8 - i), True, WHITE)  
         # create border for labels
         text_rect = text.get_rect(center=(WIDTH + label_gap // 2, (i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS))))
         pygame.draw.rect(WIN, BLACK, text_rect)
         # draw the text onto window on top of border for labels
         WIN.blit(text, text_rect)
 
-    # draw row labels
+    # draw row labels A-H
     for i in range(ROWS):
         text = label_font.render(chr(65 + i), True, WHITE)
         text_rect = text.get_rect(center=((i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS)), WIDTH + label_gap // 2))
@@ -916,7 +916,7 @@ def main(WIDTH, ROWS):
                             resetColours(grid, highlightedPiece)
                             currMove=move(grid, highlightedPiece, clickedNode)
 
-                            # check for stalemate after a move
+                            # check for stalemate after a move and reset game
                             if check_stalemate(grid, 'R') and check_stalemate(grid, 'G'):
                                 print("Stalemate! It's a draw!")
                                 reset_game(grid)

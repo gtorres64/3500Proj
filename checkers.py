@@ -82,6 +82,37 @@ def update_display(win, grid, rows, width):
     draw_grid(win, rows, width)
     pygame.display.update()
 
+# Function to create the initial test case game board grid 
+def make_grid_test_case(rows, width):
+    grid = []
+    gap = width// rows
+    count = 0
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(j,i, gap)
+            if abs(i-j) % 2 == 0:
+                node.colour=BLACK
+            if (abs(i+j)%2==0) and (i==0) and (j!=2) and (j!=6):
+                node.piece = Piece('R')
+            elif (abs(i+j)%2==0) and (i==1) and (j!=1):
+                node.piece = Piece('R')
+            elif (abs(i+j)%2==0) and (i==2) and (j!=2) and (j!=4):
+                node.piece = Piece('R')
+            elif (abs(i+j)%2==0) and (i==3) and (j==1):
+                node.piece = Piece('R')
+            elif(abs(i+j)%2==0) and (i==3) and (j==3):
+                node.piece=Piece('G')
+            elif(abs(i+j)%2==0) and (i>4) and (i<7) and (j!=4) and (j!=5):
+                node.piece=Piece('G')
+            elif(abs(i+j)%2==0) and (i==7) and (j==3):
+                node.piece=Piece('R')
+                node.piece.type='KING'
+                node.piece.image=REDKING
+            count+=1
+            grid[i].append(node)
+    return grid
+
 # Function to create the initial game board grid
 def make_grid(rows, width):
     grid = []
@@ -97,6 +128,57 @@ def make_grid(rows, width):
                 node.piece = Piece('R')
             elif(abs(i+j)%2==0) and i>4:
                 node.piece=Piece('G')
+            count+=1
+            grid[i].append(node)
+    return grid
+
+#Function for creating the chess grid test case
+def make_grid_chess_test_case(rows, width):
+    grid = []
+    gap = width// rows
+    count = 0
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(j,i, gap)
+            #Alternating between pink and white spaces
+            #Changed to follow chess boards
+            if abs(i-j) % 2 == 1:
+                node.colour=PINK
+            if i == 1  and j != 3 and j != 4:
+                node.piece = ChessPiece('B',"B_PAWN")
+            if (i == 2  and j == 3):
+                node.piece = ChessPiece('B',"B_PAWN")
+            if (i == 3 and j == 4):
+                node.piece = ChessPiece('B',"B_PAWN")
+            if i == 0 and (j == 0 or j == 7):
+                node.piece = ChessPiece('B',"B_ROOK")
+            if i == 2 and (j == 2 or j == 5):
+                node.piece = ChessPiece('B',"B_KNIGHT")
+            if j == 4 and (i == 1 or i == 2):
+                node.piece = ChessPiece('B',"B_BISHOP")
+            if i == 0 and j == 4:
+                node.piece = ChessPiece('B',"B_QUEEN")
+            if i == 2 and j == 7:
+                node.piece = ChessPiece('B', "B_KING")
+            if i == 4 and j == 4:
+                node.piece = ChessPiece('W',"W_PAWN")
+            if i == 6 and j != 4:
+                node.piece = ChessPiece('W',"W_PAWN")
+            if i == 7 and (j == 0 or j == 5):
+                node.piece = ChessPiece('W',"W_ROOK")
+            if i == 4 and (j == 0):
+                node.piece = ChessPiece('W',"W_KNIGHT")
+            if i == 5 and (j == 5):
+                node.piece = ChessPiece('W',"W_KNIGHT")
+            if i == 3 and (j == 1):
+                node.piece = ChessPiece('W',"W_BISHOP")
+            if i == 7 and (j == 2):
+                node.piece = ChessPiece('W',"W_BISHOP")
+            if i == 7 and j == 6:
+                node.piece = ChessPiece('W',"W_QUEEN")
+            if i == 7 and j == 3:
+                node.piece = ChessPiece('W', "W_KING")
             count+=1
             grid[i].append(node)
     return grid
@@ -155,16 +237,16 @@ def draw_labels():
     # define font for labels
     label_font = pygame.font.Font(None, 36) 
 
-    # draw column labels
+    # draw column labels 8-1
     for i in range(ROWS):
-        text = label_font.render(str(i + 1), True, WHITE)
+        text = label_font.render(str(8 - i), True, WHITE)  
         # create border for labels
         text_rect = text.get_rect(center=(WIDTH + label_gap // 2, (i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS))))
         pygame.draw.rect(WIN, BLACK, text_rect)
         # draw the text onto window on top of border for labels
         WIN.blit(text, text_rect)
 
-    # draw row labels
+    # draw row labels A-H
     for i in range(ROWS):
         text = label_font.render(chr(65 + i), True, WHITE)
         text_rect = text.get_rect(center=((i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS)), WIDTH + label_gap // 2))
@@ -924,6 +1006,7 @@ def main(WIDTH, ROWS):
     highlightedPiece = None
 
     game_over = False
+    testcase = 0
 
     #Print statements asking for a gamemode
     print("1: Play Checkers")
@@ -946,6 +1029,14 @@ def main(WIDTH, ROWS):
                 elif event.key == pygame.K_2:
                     gameMode = 2
                     noInput = False
+                elif event.key == pygame.K_3:
+                    gameMode = 1
+                    testcase = 1
+                    noInput = False
+                elif event.key == pygame.K_4:
+                    gameMode = 2
+                    testcase = 1
+                    noInput = False
                 elif event.key == pygame.K_0:
                     gameMode = 3
                     noInput = False
@@ -957,7 +1048,10 @@ def main(WIDTH, ROWS):
         print("0: Quit Game")
         print("R: Restart Game")
         currMove = 'G'
-        grid = make_grid(ROWS, WIDTH)
+        if not testcase:
+            grid = make_grid(ROWS, WIDTH)
+        else:
+             grid = make_grid_test_case(ROWS, WIDTH)
         while not game_over:
             for event in pygame.event.get():
                 if event.type== pygame.QUIT:
@@ -1030,7 +1124,10 @@ def main(WIDTH, ROWS):
     elif gameMode == 2:
         print("Playing Chess")
         currMove = 'W'
-        grid = make_grid_chess(ROWS, WIDTH)
+        if not testcase:
+            grid = make_grid_chess(ROWS, WIDTH)
+        else:
+             grid = make_grid_chess_test_case(ROWS, WIDTH)
         lastMove = None
         while not game_over:
             for event in pygame.event.get():
@@ -1071,6 +1168,7 @@ def main(WIDTH, ROWS):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                             
                                             print(currMove, " Checkmate")
+                                            update_display(WIN, grid,ROWS,WIDTH)
                                             endChess()
                                             while True:
                                                 for event in pygame.event.get():
@@ -1104,6 +1202,7 @@ def main(WIDTH, ROWS):
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                             print(currMove, " Checkmate")
+                                            update_display(WIN, grid,ROWS,WIDTH)
 
                                             endChess()
                                             while True:
@@ -1138,6 +1237,7 @@ def main(WIDTH, ROWS):
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                             print(currMove, " Checkmate")
+                                            update_display(WIN, grid,ROWS,WIDTH)
 
                                             endChess()
                                             while True:

@@ -506,7 +506,7 @@ def queenSideCastle(grid, nodePosition):
 #The Pawns, King and Knights are simple enough, 
 #but the Queen, Rook and Bishop can travel far
 #We need to dynamically generate a vector in case there is a piece in the way
-def generatePotentialChessMoves(nodePosition, grid, lastMove):
+def generatePotentialChessMoves(nodePosition, grid, lastMove, castling=1):
     checker = lambda x,y: x+y>=0 and x+y<8
     positions= []
     column, row = nodePosition
@@ -518,8 +518,9 @@ def generatePotentialChessMoves(nodePosition, grid, lastMove):
                 vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='W_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
-                kingSideCastle(grid, nodePosition)
-                queenSideCastle(grid, nodePosition)
+                if castling:
+                    kingSideCastle(grid, nodePosition)
+                    queenSideCastle(grid, nodePosition)
             if grid[column][row].piece.type=='W_QUEEN':
                 vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='W_ROOK':
@@ -534,8 +535,9 @@ def generatePotentialChessMoves(nodePosition, grid, lastMove):
                 vectors = pawnMoves(nodePosition, grid, lastMove)
             if grid[column][row].piece.type=='B_KING':
                 vectors = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
-                kingSideCastle(grid, nodePosition)
-                queenSideCastle(grid, nodePosition)
+                if castling:
+                    kingSideCastle(grid, nodePosition)
+                    queenSideCastle(grid, nodePosition)
             if grid[column][row].piece.type=='B_QUEEN':
                 vectors = queenMoves(nodePosition, grid)
             if grid[column][row].piece.type=='B_ROOK':
@@ -619,7 +621,6 @@ def moveChess(grid, piecePosition, newPosition, lastMove):
     gridCopy = duplicateGrid(grid, oldColumn, oldRow, newColumn, newRow)
     
     if checkCheck(gridCopy, piece.team, lastMove):
-        resetChessColours(grid, piecePosition)
         print("Invalid move, cannot put king in check!")
         return False
 
@@ -630,12 +631,12 @@ def moveChess(grid, piecePosition, newPosition, lastMove):
     
 
     # Special en passant case
-    if grid[newColumn][newRow].piece.type == "W_PAWN" or grid[newColumn][newRow].piece.type == "B_PAWN":
+    if grid[newColumn][newRow].piece.type == "W_PAWN":
         if (grid[newColumn+1][newRow].piece and grid[newColumn+1][newRow].colour == ENPASSANT
             and grid[newColumn][newRow].piece.type == "W_PAWN"):
             grid[newColumn+1][newRow].piece = None
-
-        elif (grid[newColumn-1][newRow].piece and grid[newColumn-1][newRow].colour == ENPASSANT
+    elif grid[newColumn][newRow].piece.type == "B_PAWN":
+        if (grid[newColumn-1][newRow].piece and grid[newColumn-1][newRow].colour == ENPASSANT
             and grid[newColumn][newRow].piece.type == "B_PAWN"):
             grid[newColumn-1][newRow].piece = None
 
@@ -767,7 +768,7 @@ def checkCheck(grid, currMove, lastMove):
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             if grid[i][j].piece and grid[i][j].piece.team != currMove:
-                potentialMoves = generatePotentialChessMoves((i, j), grid, lastMove)
+                potentialMoves = generatePotentialChessMoves((i, j), grid, lastMove, 0)
                 if king in potentialMoves:
                     return True
     return False
@@ -776,25 +777,12 @@ def checkCheck(grid, currMove, lastMove):
 def checkMate(grid, currMove, lastMove, piecePosition, newPosition):
     if not checkCheck(grid, currMove, lastMove):
         return False
-
-    king = None
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            node = grid[i][j]
-            if node.piece and node.piece.type == "W_KING" and node.piece.team == currMove:
-                king = (i, j)
-                #print("White king", king)
-                break
-            if node.piece and node.piece.type == "B_KING" and node.piece.team == currMove:
-                king = (i, j)
-                #print("Black king", king)
-                break
     
     for i in range(ROWS):
         for j in range(ROWS):
             node = grid[i][j]
             if node.piece and node.piece.team == currMove:
-                potentialMoves = generatePotentialChessMoves((i, j), grid, None)
+                potentialMoves = generatePotentialChessMoves((i, j), grid, None, 0)
                 for move in potentialMoves:
                     duplicatedGrid = duplicateGrid(grid, i, j, move[0], move[1])
                     if not checkCheck(duplicatedGrid, currMove, lastMove):
@@ -807,12 +795,12 @@ def validMove(grid, currMove, lastMove, piecePosition, newPosition):
         for j in range(8):
             node = grid[i][j]
             if node.piece and node.piece.team == currMove:
-                potentialMoves = generatePotentialChessMoves((i, j), grid, None)
+                potentialMoves = generatePotentialChessMoves((i, j), grid, None, 0)
 
                 for move in potentialMoves:
-                    simulatedGrid = duplicateGrid(grid, i, j, move[0], move[1])
+                    gridCopy = duplicateGrid(grid, i, j, move[0], move[1])
 
-                    if not checkCheck(simulatedGrid, currMove, lastMove):
+                    if not checkCheck(gridCopy, currMove, lastMove):
                         return True
     return False
 #WINNER
@@ -943,46 +931,57 @@ def main(WIDTH, ROWS):
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
                             moveIsValid = moveChess(grid, highlightedPiece, clickedNode, lastMove)
-                            print("Checking if move is valid")
                             if moveIsValid:
-                                print("Valid move")
                                 newPiece = grid[ClickedPositionColumn][ClickedPositionRow].piece
                                 lastMove = PrevMove(newPiece, highlightedPiece, clickedNode)
                                 resetChessColours(grid, highlightedPiece)
                                 if checkCheck(grid, oppositeChess(currMove), lastMove):
-                                    print("Check!")
+                                    print(currMove, " Check")
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
-                                            print("Checkmate")
-                                        else:
-                                            print("Stalemate")
+                                            print(currMove, " Checkmate")
+                                else:
+                                    if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                        print("Stalemate")
                                 currMove = oppositeChess(currMove)
                     # Code for capturing pieces, highlighted in green
                     elif grid[ClickedPositionColumn][ClickedPositionRow].colour == GREENGRID:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
-                            moveChess(grid, highlightedPiece, clickedNode, lastMove)
-                            resetChessColours(grid, highlightedPiece)
-                            currMove = oppositeChess(currMove)
+                            moveIsValid = moveChess(grid, highlightedPiece, clickedNode, lastMove)
+                            if moveIsValid:
+                                newPiece = grid[ClickedPositionColumn][ClickedPositionRow].piece
+                                lastMove = PrevMove(newPiece, highlightedPiece, clickedNode)
+                                resetChessColours(grid, highlightedPiece)
+                                if checkCheck(grid, oppositeChess(currMove), lastMove):
+                                    print(currMove, " Check")
+                                    if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                        if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                            print(currMove, " Checkmate")
+                                else:
+                                    if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                        print("Stalemate")
+                                currMove = oppositeChess(currMove)
                     # A yellow node means we can castle, handle that here
                     elif grid[ClickedPositionColumn][ClickedPositionRow].colour == YELLOW:
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
                             moveIsValid = moveChess(grid, highlightedPiece, clickedNode, lastMove)
-                            print("Checking if move is valid")
                             if moveIsValid:
                                 newPiece = grid[ClickedPositionColumn][ClickedPositionRow].piece
                                 lastMove = PrevMove(newPiece, highlightedPiece, clickedNode)
-                                currMove = oppositeChess(currMove)
-                                if checkCheck(grid, currMove, lastMove):
-                                    print("Check!")
+                                resetChessColours(grid, highlightedPiece)
+                                if checkCheck(grid, oppositeChess(currMove), lastMove):
+                                    print(currMove, " Check")
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
-                                        if checkMate(grid, currMove, lastMove, highlightedPiece, clickedNode):
-                                            print("Checkmate")
-                                        else:
-                                            print("Stalemate")
+                                        if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                            print(currMove, " Checkmate")
+                                else:
+                                    if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
+                                        print("Stalemate")
+                                currMove = oppositeChess(currMove)
                             
                     # Do nothing if we click the same peice
                     elif highlightedPiece == clickedNode:

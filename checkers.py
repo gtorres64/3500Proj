@@ -57,7 +57,8 @@ ENPASSANT = (0, 0, 255)
 
 # Initialize Pygame
 pygame.init()
-WIN = pygame.display.set_mode((WIDTH,WIDTH))
+label_gap = 20
+WIN = pygame.display.set_mode((WIDTH + label_gap, WIDTH + label_gap))
 pygame.display.set_caption('Checkers')
 
 # Define a class for each node on the game board
@@ -151,6 +152,28 @@ def draw_grid(win, rows, width):
         pygame.draw.line(win, BLACK, (0, i * gap), (width, i * gap))
         for j in range(rows):
             pygame.draw.line(win, BLACK, (j * gap, 0), (j * gap, width))
+
+# function to draw labels for columns and rows
+def draw_labels():
+    # define font for labels
+    label_font = pygame.font.Font(None, 36) 
+
+    # draw column labels
+    for i in range(ROWS):
+        text = label_font.render(str(i + 1), True, WHITE)
+        # create border for labels
+        text_rect = text.get_rect(center=(WIDTH + label_gap // 2, (i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS))))
+        pygame.draw.rect(WIN, BLACK, text_rect)
+        # draw the text onto window on top of border for labels
+        WIN.blit(text, text_rect)
+
+    # draw row labels
+    for i in range(ROWS):
+        text = label_font.render(chr(65 + i), True, WHITE)
+        text_rect = text.get_rect(center=((i * (WIDTH // ROWS)) + (WIDTH // (2 * ROWS)), WIDTH + label_gap // 2))
+        pygame.draw.rect(WIN, BLACK, text_rect)
+        WIN.blit(text, text_rect)
+
 
 # Class representing a game piece
 class Piece:
@@ -873,7 +896,11 @@ def main(WIDTH, ROWS):
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
                     #If statement if the user clicks a highlighted node
-                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                    if (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE
+                    ):
                         #Get the column and row of the highlighted piece
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
@@ -890,6 +917,11 @@ def main(WIDTH, ROWS):
                     #Nothing happens if the user clicks the selected piece
                     elif highlightedPiece == clickedNode:
                         pass
+                    elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
+                        # checkif click is within grid boundaries 
+                        if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
+                            # handle clicks inside border but outside playable grid
+                            pass
                     else:
                         #Highlight a piece when the player clicks if it belongs to the player
                         if grid[ClickedPositionColumn][ClickedPositionRow].piece:
@@ -904,6 +936,7 @@ def main(WIDTH, ROWS):
                 game_over = False
 
             update_display(WIN, grid,ROWS,WIDTH)
+            draw_labels()
     
     #Lets play Chess
     elif gameMode == 2:
@@ -924,7 +957,11 @@ def main(WIDTH, ROWS):
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
                     # Will execute when a piece is highlighted blue, move the piece to an empty space
-                    if grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE:
+                    if (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == BLUE
+                    ):
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
@@ -943,7 +980,11 @@ def main(WIDTH, ROWS):
                                         print("Stalemate")
                                 currMove = oppositeChess(currMove)
                     # Code for capturing pieces, highlighted in green
-                    elif grid[ClickedPositionColumn][ClickedPositionRow].colour == GREENGRID:
+                    elif (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == GREENGRID
+                    ):
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
@@ -962,7 +1003,11 @@ def main(WIDTH, ROWS):
                                         print("Stalemate")
                                 currMove = oppositeChess(currMove)
                     # A yellow node means we can castle, handle that here
-                    elif grid[ClickedPositionColumn][ClickedPositionRow].colour == YELLOW:
+                    elif (
+                        ClickedPositionColumn < ROWS and
+                        ClickedPositionRow < ROWS and
+                        grid[ClickedPositionColumn][ClickedPositionRow].colour == YELLOW
+                    ):
                         if highlightedPiece:
                             pieceColumn, pieceRow = highlightedPiece
                         if currMove == grid[pieceColumn][pieceRow].piece.team:
@@ -984,6 +1029,9 @@ def main(WIDTH, ROWS):
                     # Do nothing if we click the same peice
                     elif highlightedPiece == clickedNode:
                         pass
+                    elif ClickedPositionColumn >= ROWS or ClickedPositionRow >= ROWS:
+                        if ClickedPositionColumn < ROWS and ClickedPositionRow < ROWS:
+                            pass
                     # Other case
                     else:
                         #If the clicked node has a piece and belongs to the same team, we can highlight it
@@ -999,6 +1047,7 @@ def main(WIDTH, ROWS):
             ##    game_over = False
 
             update_display(WIN, grid,ROWS,WIDTH)
+            draw_labels()
 
     #Quit the game
     else:

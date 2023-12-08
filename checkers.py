@@ -936,10 +936,15 @@ def resetGame(grid):
         for j in range(ROWS):
             grid[i][j].colour = BLACK if abs(i - j) % 2 == 0 else WHITE
             grid[i][j].piece = None
-            if abs(i + j) % 2 == 0 and i < 3:
-                grid[i][j].piece = Piece('R')
-            elif abs(i + j) % 2 == 0 and i > 4:
-                grid[i][j].piece = Piece('G')
+
+#Game reset CHESS
+def resetGameChess(grid):
+    # Reset the board to its initial state
+    for i in range(ROWS):
+        for j in range(ROWS):
+            grid[i][j].colour = PINK if abs(i - j) % 2 == 1 else WHITE
+            grid[i][j].piece = None
+
 
 #MENU                
 # Function to display the title screen
@@ -1110,10 +1115,14 @@ def main(WIDTH, ROWS):
 
                 # Check for key presses
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
+                    if event.key == pygame.K_u:
                         resetGame(grid)
                         currMove = 'G'
                         game_over = False  # Reset the game_over variable
+                        if not testcase:
+                            grid = make_grid(ROWS, WIDTH)
+                        else:
+                            grid = make_grid_test_case(ROWS, WIDTH)
                     elif event.key == pygame.K_0:
                         pygame.quit()
                         sys.exit()
@@ -1175,15 +1184,6 @@ def main(WIDTH, ROWS):
                                             print(currMove, " Checkmate")
                                             update_display(WIN, grid,ROWS,WIDTH)
                                             endChess()
-                                            while True:
-                                                for event in pygame.event.get():
-                                                    if event.type == pygame.KEYDOWN:
-                                                        if event.key == pygame.K_0:
-                                                            pygame.quit()
-                                                            sys.exit()
-                                                        elif event.key == pygame.K_r:
-                                                            resetChessGame()
-
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         print("Stalemate")
@@ -1210,14 +1210,6 @@ def main(WIDTH, ROWS):
                                             update_display(WIN, grid,ROWS,WIDTH)
 
                                             endChess()
-                                            while True:
-                                                for event in pygame.event.get():
-                                                    if event.type == pygame.KEYDOWN:
-                                                        if event.key == pygame.K_0:
-                                                            pygame.quit()
-                                                            sys.exit()
-                                                        elif event.key == pygame.K_r:
-                                                            resetChessGame()
 
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
@@ -1245,14 +1237,6 @@ def main(WIDTH, ROWS):
                                             update_display(WIN, grid,ROWS,WIDTH)
 
                                             endChess()
-                                            while True:
-                                                for event in pygame.event.get():
-                                                    if event.type == pygame.KEYDOWN:
-                                                        if event.key == pygame.K_0:
-                                                            pygame.quit()
-                                                            sys.exit()
-                                                        elif event.key == pygame.K_r:
-                                                            resetChessGame()
 
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
@@ -1272,12 +1256,19 @@ def main(WIDTH, ROWS):
                             if currMove == grid[ClickedPositionColumn][ClickedPositionRow].piece.team:
                                 highlightedPiece = Chesshighlight(clickedNode, grid, highlightedPiece, lastMove)
 
-            # Check for a winning condition
-            #winner = check_for_winner(grid)
-            ##if winner is not None:
-            ##    print(f"Player {winner} wins!")
-            ##    reset_game(grid)
-            ##    game_over = False
+                # Check for key presses
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_u:
+                        resetGameChess(grid)
+                        currMove = 'W'
+                        if not testcase:
+                            grid = make_grid_chess(ROWS, WIDTH)
+                        else:
+                             grid = make_grid_chess_test_case(ROWS, WIDTH)    
+                        game_over = False                    
+                    elif event.key == pygame.K_0:
+                        pygame.quit()
+                        sys.exit()
 
             update_display(WIN, grid,ROWS,WIDTH)
             draw_labels()

@@ -57,6 +57,7 @@ pygame.init()
 label_gap = 20
 WIN = pygame.display.set_mode((WIDTH + label_gap, WIDTH + label_gap))
 pygame.display.set_caption('Checkers')
+jump = False
 
 # Define a class for each node on the game board
 priorMoves=[]
@@ -699,6 +700,8 @@ def Chesshighlight(ClickedNode, Grid, OldHighlight, lastMove):
 
 # Function to move a game piece on the board
 def move(grid, piecePosition, newPosition):
+    global jump
+    jump = False
     resetColours(grid, piecePosition)
     newColumn, newRow = newPosition
     oldColumn, oldRow = piecePosition
@@ -717,6 +720,7 @@ def move(grid, piecePosition, newPosition):
     # Check for capturing move and remove captured piece
     if abs(newColumn-oldColumn)==2 or abs(newRow-oldRow)==2:
         grid[int((newColumn+oldColumn)/2)][int((newRow+oldRow)/2)].piece = None
+        jump = True
         return grid[newColumn][newRow].piece.team
     return opposite(grid[newColumn][newRow].piece.team)
 
@@ -1007,6 +1011,7 @@ def main(WIDTH, ROWS):
 
     game_over = False
     testcase = 0
+    global jump
 
     #Print statements asking for a gamemode
     print("1: Play Checkers")
@@ -1060,8 +1065,15 @@ def main(WIDTH, ROWS):
                     sys.exit()
                 #Take action when mouse is clicked
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    if jump and not generatePotentialMoves(clickedNode, grid):
+                        currMove = 'R' if currMove == 'G' else 'G'
+                        jump = False
+                    elif not jump:
+                        clickedNode = getNode(grid, ROWS, WIDTH)
+                    else: 
+                        if getNode(grid, ROWS, WIDTH) in generatePotentialMoves(clickedNode, grid):
+                            clickedNode = getNode(grid, ROWS, WIDTH)
                     #Gets the clicked node
-                    clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
                     #If statement if the user clicks a highlighted node
                     if (
@@ -1141,13 +1153,6 @@ def main(WIDTH, ROWS):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     clickedNode = getNode(grid, ROWS, WIDTH)
                     ClickedPositionColumn, ClickedPositionRow = clickedNode
-                    if grid[ClickedPositionColumn][ClickedPositionRow].piece:
-                        print(grid[ClickedPositionColumn][ClickedPositionRow].piece.turnCount)
-                    if not lastMove == None:
-                        print(lastMove.piece.type)
-                        print("START", lastMove.start)
-                        print("END", lastMove.end)
-                        print(lastMove.move)
                     # Will execute when a piece is highlighted blue, move the piece to an empty space
                     if (
                         ClickedPositionColumn < ROWS and

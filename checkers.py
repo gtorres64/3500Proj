@@ -732,10 +732,9 @@ def moveChess(grid, piecePosition, newPosition, lastMove):
 
     gridCopy = duplicateGrid(grid, oldColumn, oldRow, newColumn, newRow)
     
-    if not lastMove == None:
-        if checkCheck(gridCopy, piece.team, lastMove):
-            print("Invalid move, cannot put king in check!")
-            return False
+    if checkCheck(gridCopy, piece.team, lastMove):
+        print("Invalid move, cannot put king in check!")
+        return False
 
     grid[newColumn][newRow].piece=piece
     grid[oldColumn][oldRow].piece = None
@@ -1002,13 +1001,13 @@ def resetChessGame():
 def endCheckers():
     print("GAME OVER!! PRESS THE FOLLOWING")
     print("0: Quit")
-    print("R: Restart")
+    print("U: Restart")
 
 #RESTART OR QUIT CHESS
 def endChess():
     print("GAME OVER!! PRESS THE FOLLOWING")
     print("0: Quit")
-    print("R: Restart")                
+    print("U: Restart")                
 
 # Main function to run the game loop
 def main(WIDTH, ROWS):
@@ -1056,7 +1055,7 @@ def main(WIDTH, ROWS):
         #while True:
         print("Playing Checkers")
         print("0: Quit Game")
-        print("R: Restart Game")
+        print("U: Restart Game")
         currMove = 'G'
         if not testcase:
             grid = make_grid(ROWS, WIDTH)
@@ -1133,7 +1132,12 @@ def main(WIDTH, ROWS):
             if winner is not None:
                 print(f"Player {winner} wins!")
                 resetGame(grid)
+                currMove = 'G'
                 game_over = False
+                if not testcase:
+                    grid = make_grid(ROWS, WIDTH)
+                else:
+                    grid = make_grid_test_case(ROWS, WIDTH)
             
 
 
@@ -1187,6 +1191,8 @@ def main(WIDTH, ROWS):
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         print("Stalemate")
+                                        update_display(WIN, grid,ROWS,WIDTH)
+                                        endChess()
                                 currMove = oppositeChess(currMove)
                     # Code for capturing pieces, highlighted in green
                     elif (
@@ -1208,12 +1214,13 @@ def main(WIDTH, ROWS):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                             print(currMove, " Checkmate")
                                             update_display(WIN, grid,ROWS,WIDTH)
-
                                             endChess()
 
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         print("Stalemate")
+                                        update_display(WIN, grid,ROWS,WIDTH)
+                                        endChess()
                                 currMove = oppositeChess(currMove)
                     # A yellow node means we can castle, handle that here
                     elif (
@@ -1235,12 +1242,13 @@ def main(WIDTH, ROWS):
                                         if checkMate(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                             print(currMove, " Checkmate")
                                             update_display(WIN, grid,ROWS,WIDTH)
-
                                             endChess()
 
                                 else:
                                     if not validMove(grid, oppositeChess(currMove), lastMove, highlightedPiece, clickedNode):
                                         print("Stalemate")
+                                        update_display(WIN, grid,ROWS,WIDTH)
+                                        endChess()
                                 currMove = oppositeChess(currMove)
                             
                     # Do nothing if we click the same peice
